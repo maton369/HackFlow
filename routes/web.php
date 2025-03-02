@@ -34,14 +34,16 @@ Route::middleware(['auth'])->group(function () {
 
     // プロジェクト関連
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    Route::get('/projects/{id}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::patch('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
 
     // チーム関連
     Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
-    Route::get('/teams/{id}', [TeamController::class, 'show'])->name('teams.show');
+    Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
 
     // ユーザー詳細
-    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 
     // 統計画面
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');

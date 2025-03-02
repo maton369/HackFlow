@@ -6,6 +6,7 @@ export default function Show({ auth, project }) {
     // ✅ デバッグ用: project データをログに出力
     useEffect(() => {
         console.log("プロジェクトデータ:", project);
+        console.log("チームのメンバー:", project.team?.members);
     }, [project]);
 
     return (
@@ -59,6 +60,18 @@ export default function Show({ auth, project }) {
                                 <p className="text-gray-500">工程が登録されていません。</p>
                             )}
                         </ul>
+
+                        {/* ✅ 編集ボタンを追加 (プロジェクトメンバーのみ表示) */}
+                        {project.team?.members?.some(member => member.id === auth.user.id) && (
+                            <div className="mt-6">
+                                <Link
+                                    href={route('projects.edit', project.id)}
+                                    className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                                >
+                                    編集
+                                </Link>
+                            </div>
+                        )}
 
                         <div className="mt-6">
                             <Link href={route('home')} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
