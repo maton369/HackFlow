@@ -45,4 +45,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function techStacks()
+    {
+        return $this->belongsToMany(TechStack::class, 'user_tech_stacks');
+    }
+
+    public function urls()
+    {
+        return $this->hasMany(UserUrl::class);
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_members');
+    }
 }
