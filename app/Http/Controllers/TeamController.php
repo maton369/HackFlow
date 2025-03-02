@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Team;
 
 class TeamController extends Controller
 {
@@ -14,8 +15,7 @@ class TeamController extends Controller
 
     public function show($id)
     {
-        // 仮のチームデータ
-        $team = ['id' => $id, 'name' => "チーム $id"];
+        $team = Team::with('members.user', 'projects')->findOrFail($id);
         return Inertia::render('Teams/Show', ['team' => $team]);
     }
 }

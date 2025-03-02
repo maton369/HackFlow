@@ -38,4 +38,14 @@ class Project extends Model
     {
         return $this->belongsToMany(Tag::class, 'project_tags');
     }
+
+    public function steps()
+    {
+        return $this->hasMany(ProjectStep::class, 'project_id');
+    }
+
+    public function projectSteps()
+    {
+        return $this->hasMany(ProjectStep::class);
+    }
 }

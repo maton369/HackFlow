@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             ProjectTechStacksTableSeeder::class,
             LikesTableSeeder::class,
             TechStackStatisticsTableSeeder::class,
+            ProjectStepsTableSeeder::class,
         ]);
     }
 }
