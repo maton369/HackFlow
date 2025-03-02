@@ -23,7 +23,11 @@ export default function Register() {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('register'));
+        post(route('register'), {
+            onSuccess: () => {
+                window.location.href = route('mypage'); // 🔥 ここでリダイレクト
+            },
+        });
     };
 
     return (
