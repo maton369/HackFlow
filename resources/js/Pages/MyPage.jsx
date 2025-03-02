@@ -15,9 +15,20 @@ export default function MyPage({ auth }) {
                         <p className="text-gray-900">こんにちは、{auth.user.name} さん！</p>
 
                         <div className="mt-4 space-y-2">
-                            <Link href={route('projects.create')} className="block px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">プロジェクト作成</Link>
-                            <Link href={route('teams.create')} className="block px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">チーム作成</Link>
-                            <Link href={route('statistics')} className="block px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">統計ページ</Link>
+                            <Link href={route('projects.create')} className="block px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                プロジェクト作成
+                            </Link>
+                            <Link href={route('teams.create')} className="block px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
+                                チーム作成
+                            </Link>
+                            <Link href={route('statistics')} className="block px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                統計ページ
+                            </Link>
+
+                            {/* ✅ Home へ遷移するボタン追加 */}
+                            <Link href={route('home')} className="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                ホームへ戻る
+                            </Link>
                         </div>
                     </div>
                 </div>
