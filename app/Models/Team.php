@@ -4,20 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Team extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['team_name', 'team_image_url'];
+    protected $fillable = [
+        'team_name',
+        'team_image_url',
+    ];
 
-    public function members()
+    public function members(): HasMany
     {
-        return $this->belongsToMany(User::class, 'team_members');
+        return $this->hasMany(TeamMember::class, 'team_id');
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'team_members', 'team_id', 'user_id');
     }
 
     public function projects()
     {
-        return $this->hasMany(Project::class);
+        return $this->hasMany(Project::class, 'team_id');
     }
 }

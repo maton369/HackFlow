@@ -5,18 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TeamMember extends Model
+class ProjectStep extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'team_id',
-        'user_id',
-        'role',
+        'project_id',
+        'title',
+        'description',
     ];
 
-    public function user()
+    public function project()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Project::class, 'project_id');
     }
 }

@@ -5,24 +5,19 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| ここにアプリケーションのWebルートを登録します。
-| これらのルートはRouteServiceProviderによってロードされ、
-| "web" ミドルウェアグループの中に含まれます。
-|
-*/
+use App\Models\Project;
+use App\Models\Team;
 
 // ホーム画面
 Route::get('/', function () {
-    return Inertia::render('Home');
+    return Inertia::render('Home', [
+        'projects' => Project::all(),
+        'teams' => Team::all(),
+    ]);
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {

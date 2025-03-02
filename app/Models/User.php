@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -58,6 +59,11 @@ class User extends Authenticatable
 
     public function teams()
     {
-        return $this->belongsToMany(Team::class, 'team_members');
+        return $this->belongsToMany(Team::class, 'team_members', 'user_id', 'team_id');
+    }
+
+    public function teamMembers(): HasMany
+    {
+        return $this->hasMany(TeamMember::class, 'user_id');
     }
 }
