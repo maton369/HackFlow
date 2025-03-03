@@ -18,6 +18,7 @@ export default function Home({ auth, projects, teams }) {
                             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                                 <p className="text-gray-900">Welcome to HackFlow, {auth.user.name}!</p>
 
+                                {/* ✅ プロジェクト一覧 */}
                                 <h3 className="mt-6 text-lg font-semibold">プロジェクト一覧</h3>
                                 <ul className="mt-4">
                                     {projects.map(project => (
@@ -29,6 +30,7 @@ export default function Home({ auth, projects, teams }) {
                                     ))}
                                 </ul>
 
+                                {/* ✅ チーム一覧 */}
                                 <h3 className="mt-6 text-lg font-semibold">チーム一覧</h3>
                                 <ul className="mt-4">
                                     {teams.map(team => (
@@ -50,7 +52,33 @@ export default function Home({ auth, projects, teams }) {
                         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                                 <p className="text-gray-900">Welcome to HackFlow! ログインするとより多くの機能が使えます。</p>
-                                <div className="mt-4 space-y-2">
+
+                                {/* ✅ プロジェクト一覧 */}
+                                <h3 className="mt-6 text-lg font-semibold">プロジェクト一覧</h3>
+                                <ul className="mt-4">
+                                    {projects.map(project => (
+                                        <li key={project.id} className="py-2">
+                                            <Link href={route('projects.show', project.id)} className="text-blue-500 hover:underline">
+                                                {project.project_name}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                {/* ✅ チーム一覧 */}
+                                <h3 className="mt-6 text-lg font-semibold">チーム一覧</h3>
+                                <ul className="mt-4">
+                                    {teams.map(team => (
+                                        <li key={team.id} className="py-2">
+                                            <Link href={route('teams.show', team.id)} className="text-blue-500 hover:underline">
+                                                {team.team_name}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                {/* ✅ 未ログイン時のボタン */}
+                                <div className="mt-6 space-y-2">
                                     <Link href={route('login')} className="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                                         ログイン
                                     </Link>

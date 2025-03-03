@@ -1,15 +1,19 @@
 import { useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Show({ auth, user }) {
-    // ✅ コンポーネントがマウントされたときにデータをログに出力
+    // ✅ デバッグ用ログ
     useEffect(() => {
         console.log("✅ 受け取ったユーザーデータ:", user);
-    }, [user]);
+        console.log("✅ 認証ユーザー:", auth.user);
+    }, [user, auth]);
+
+    const Layout = auth.user ? AuthenticatedLayout : GuestLayout;
 
     return (
-        <AuthenticatedLayout
+        <Layout
             user={auth.user}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{user.name} のプロフィール</h2>}
         >
@@ -32,7 +36,7 @@ export default function Show({ auth, user }) {
                         {/* ✅ 基本情報 */}
                         <div className="mt-4">
                             <p><strong>名前:</strong> {user.name}</p>
-                            <p><strong>メールアドレス:</strong> {user.email}</p>
+                            <p><strong>メールアドレス:</strong> {auth.user ? user.email : "ログインすると閲覧できます"}</p>
                             <p><strong>登録日:</strong> {user.created_at ? new Date(user.created_at).toLocaleDateString() : "不明"}</p>
                             <p><strong>自己紹介:</strong> {user.bio || "N/A"}</p>
                             <p><strong>技術レベル:</strong> {user.tech_level || "N/A"}</p>
@@ -41,7 +45,7 @@ export default function Show({ auth, user }) {
                         {/* ✅ 技術スタック */}
                         <div className="mt-6">
                             <h4 className="font-semibold">技術スタック</h4>
-                            {user.tech_stacks && user.tech_stacks.length > 0 ? (  // ✅ 修正: `user.techStacks → user.tech_stacks`
+                            {user.tech_stacks && user.tech_stacks.length > 0 ? (
                                 <ul className="list-disc pl-5">
                                     {user.tech_stacks.map(stack => (
                                         <li key={stack.id}>{stack.name || "不明な技術"}</li>
@@ -52,12 +56,10 @@ export default function Show({ auth, user }) {
                             )}
                         </div>
 
-
-
                         {/* ✅ 関連URL */}
                         <div className="mt-6">
                             <h4 className="font-semibold">関連URL</h4>
-                            {user.urls && user.urls.length > 0 ? ( // ✅ `user.urls` が `undefined` の場合に備える
+                            {user.urls && user.urls.length > 0 ? (
                                 <ul className="list-disc pl-5">
                                     {user.urls.map(url => (
                                         <li key={url.id}>
@@ -72,34 +74,50 @@ export default function Show({ auth, user }) {
                             )}
                         </div>
 
-
                         {/* ✅ 所属チーム */}
                         <div className="mt-6">
                             <h4 className="font-semibold">所属チーム</h4>
                             {user.teams && user.teams.length > 0 ? (
                                 <ul className="list-disc pl-5">
                                     {user.teams.map(team => (
-                                        <li key={team.id}>{team.name ? team.name : team.team_name || "チーム名不明"}</li>
+                                        <li key={team.id}>
+                                            <Link href={route('teams.show', team.id)} className="text-blue-500 hover:underline">
+                                                {team.name || "チーム名不明"}
+                                            </Link>
+                                        </li>
                                     ))}
                                 </ul>
                             ) : (
                                 <p className="text-gray-500">未所属</p>
                             )}
-
                         </div>
 
-                        {/* ✅ 戻るボタン */}
+                        {/* ✅ ナビゲーションボタン */}
                         <div className="mt-6 space-y-2">
                             <Link href={route('home')} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                                 ホームへ戻る
                             </Link>
-                            <Link href={route('mypage')} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                                マイページ
-                            </Link>
+
+                            {auth.user && (
+                                <Link href={route('mypage')} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                    マイページ
+                                </Link>
+                            )}
+
+                            {!auth.user && (
+                                <div className="mt-4 space-y-2">
+                                    <Link href={route('login')} className="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        ログイン
+                                    </Link>
+                                    <Link href={route('register')} className="block px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                        新規登録
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </Layout>
     );
 }

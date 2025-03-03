@@ -49,9 +49,9 @@ class User extends Authenticatable
 
     public function techStacks()
     {
-        return $this->belongsToMany(TechStack::class, 'user_tech_stacks', 'user_id', 'tech_stack_id');
+        return $this->belongsToMany(TechStack::class, 'user_tech_stacks', 'user_id', 'tech_stack_id')
+            ->withTimestamps(); // 🔥 タイムスタンプを含める
     }
-
 
     public function urls()
     {
