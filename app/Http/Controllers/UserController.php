@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -24,5 +25,15 @@ class UserController extends Controller
         ]);
 
         return Inertia::render('Users/Show', ['user' => $user]);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->query('query');
+        $users = User::where('name', 'like', "%{$query}%")
+            ->where('id', '!=', Auth::id())
+            ->get();
+
+        return response()->json(['users' => $users]);
     }
 }

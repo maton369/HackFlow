@@ -10,13 +10,8 @@ export default function MyPage({ auth }) {
         console.log("🔍 マイページのユーザー情報:", user);
         console.log("🔍 技術スタック:", user.tech_stacks);
         console.log("🔍 関連URL:", user.urls);
-
+        console.log(route('teams.create'));
     }, []);
-
-    // ✅ ユーザー情報をコンソールに出力する関数
-    const logUserInfo = () => {
-        console.log("🔍 ユーザー情報:", user);
-    };
 
     return (
         <AuthenticatedLayout
@@ -99,7 +94,7 @@ export default function MyPage({ auth }) {
                                                     href={route('teams.show', team.id)}
                                                     className="text-blue-500 hover:underline"
                                                 >
-                                                    {team.name ? team.name : "チーム名不明"}
+                                                    {team.team_name ? team.team_name : "チーム名不明"}
                                                 </Link>
                                             </li>
                                         ))}
@@ -141,17 +136,6 @@ export default function MyPage({ auth }) {
                                 >
                                     ホームへ戻る
                                 </Link>
-                            </div>
-
-                            {/* ✅ ユーザー情報をコンソールに出力するボタン */}
-                            <div className="mt-6">
-                                <button
-                                    type="button"
-                                    onClick={logUserInfo}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                >
-                                    ユーザー情報をコンソールに出力
-                                </button>
                             </div>
 
                         </div>

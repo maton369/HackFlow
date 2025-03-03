@@ -14,8 +14,13 @@ export default function Statistics({ auth }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p className="text-gray-900">ここに統計データを表示します。</p>
 
-                        <div className="mt-4">
-                            <Link href={route('home')} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">ホームに戻る</Link>
+                        <div className="mt-4 space-x-2">
+                            <Link href={route('home')} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                ホームに戻る
+                            </Link>
+                            <Link href={route('mypage')} className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
+                                マイページへ戻る
+                            </Link>
                         </div>
                     </div>
                 </div>

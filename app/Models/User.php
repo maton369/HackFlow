@@ -60,7 +60,8 @@ class User extends Authenticatable
 
     public function teams()
     {
-        return $this->belongsToMany(Team::class, 'team_members', 'user_id', 'team_id');
+        return $this->belongsToMany(Team::class, 'team_members', 'user_id', 'team_id')
+            ->select('teams.id', 'teams.team_name');
     }
 
     public function teamMembers(): HasMany
