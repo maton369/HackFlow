@@ -33,7 +33,7 @@ Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')
 Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
 
 // ✅ 統計画面
-Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
+Route::get('/statistics', [ProjectController::class, 'statistics'])->name('statistics');
 
 // ✅ チーム関連ルート（認証必須）
 Route::middleware(['auth'])->prefix('teams')->group(function () {

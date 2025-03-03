@@ -12,6 +12,7 @@ use App\Models\Tag;
 use App\Models\ProjectStep;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use App\Models\TechStackStatistic;
 
 class ProjectController extends Controller
 {
@@ -66,6 +67,9 @@ class ProjectController extends Controller
         if (!empty($validated['tag_ids'])) {
             $project->tags()->sync($validated['tag_ids']);
         }
+
+        // 🔥 統計データを更新
+        TechStackStatistic::updateStatistics();
 
         return Redirect::route('projects.show', $project->id)
             ->with('success', 'プロジェクトが作成されました！');
@@ -185,5 +189,25 @@ class ProjectController extends Controller
 
         return Redirect::route('projects.show', $project->fresh()->id)
             ->with('success', 'プロジェクト情報を更新しました！');
+    }
+
+    public function statistics()
+    {
+        $techStackCounts = TechStackStatistic::with('techStack')->get();
+
+        return Inertia::render('Statistics/Index', [
+            'techStackCounts' => $techStackCounts,
+        ]);
+    }
+
+
+    public function destroy(Project $project)
+    {
+        $project->delete();
+
+        // 🔥 統計データを更新
+        TechStackStatistic::updateStatistics();
+
+        return Redirect::route('home')->with('success', 'プロジェクトが削除されました！');
     }
 }
