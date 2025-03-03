@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -8,23 +8,31 @@ import TextInput from '@/Components/TextInput';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 
-export default function Create({ auth }) {
-    const { data, setData, post, processing, errors } = useForm({
-        team_name: '',
-        team_image_url: '',
-        members: [],  // 🔥 メンバーを追加
+export default function Edit({ auth, team }) {
+    const { data, setData, patch, processing, errors } = useForm({
+        team_name: team.team_name,
+        team_image_url: team.team_image_url || '',
+        members: team.members.map(member => member.user_id), // メンバーのIDを格納
     });
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [selectedMembers, setSelectedMembers] = useState(team.members);
+
+    useEffect(() => {
+        setSelectedMembers(team.members);
+    }, [team]);
 
     // 🔍 ユーザー検索
     const searchUsers = async (query) => {
         setSearchTerm(query);
         if (query.length > 2) {
-            const response = await axios.get(route('users.search', { query }));
-            setSearchResults(response.data.users);
+            try {
+                const response = await axios.get(route('users.search', { query }));
+                setSearchResults(response.data.users);
+            } catch (error) {
+                console.error("❌ ユーザー検索エラー:", error);
+            }
         } else {
             setSearchResults([]);
         }
@@ -32,31 +40,30 @@ export default function Create({ auth }) {
 
     // ✅ メンバー追加
     const addMember = (user) => {
-        if (!selectedMembers.find((member) => member.id === user.id) && user.id !== auth.user.id) {
-            setSelectedMembers([...selectedMembers, user]);
+        if (!selectedMembers.find(member => member.user_id === user.id) && user.id !== auth.user.id) {
+            setSelectedMembers([...selectedMembers, { user_id: user.id, name: user.name }]);
             setData('members', [...data.members, user.id]);
         }
     };
 
     // ❌ メンバー削除
     const removeMember = (userId) => {
-        const updatedMembers = selectedMembers.filter(member => member.id !== userId);
+        const updatedMembers = selectedMembers.filter(member => member.user_id !== userId);
         setSelectedMembers(updatedMembers);
-        setData('members', updatedMembers.map(user => user.id));
+        setData('members', updatedMembers.map(user => user.user_id));
     };
 
     const submit = (e) => {
         e.preventDefault();
-        console.log("送信データ:", data);
-        post(route('teams.store'));
+        patch(route('teams.update', team.id));
     };
 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">チーム作成</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">チーム編集</h2>}
         >
-            <Head title="チーム作成" />
+            <Head title="チーム編集" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -116,12 +123,12 @@ export default function Create({ auth }) {
                                 {selectedMembers.length > 0 ? (
                                     <ul className="list-disc pl-5">
                                         {selectedMembers.map((user) => (
-                                            <li key={user.id} className="flex justify-between items-center">
+                                            <li key={user.user_id} className="flex justify-between items-center">
                                                 {user.name}
                                                 <button
                                                     type="button"
                                                     className="text-red-500 ml-2"
-                                                    onClick={() => removeMember(user.id)}
+                                                    onClick={() => removeMember(user.user_id)}
                                                 >
                                                     ❌
                                                 </button>
@@ -134,7 +141,7 @@ export default function Create({ auth }) {
                             </div>
 
                             <div className="flex items-center justify-end mt-4">
-                                <PrimaryButton disabled={processing}>チーム作成</PrimaryButton>
+                                <PrimaryButton disabled={processing}>チーム更新</PrimaryButton>
                             </div>
                         </form>
                     </div>

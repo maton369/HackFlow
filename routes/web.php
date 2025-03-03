@@ -21,15 +21,27 @@ Route::get('/', function () {
 })->name('home');
 
 // ✅ プロジェクトとチームの詳細はログインなしでも見れる
-Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
-Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show')->where(['project' => '[0-9]+']);
+Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->where(['team' => '[0-9]+']);
 
 // ✅ ユーザー関連
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
-Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')->where(['user' => '[0-9]+']);
+Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
+
 
 // ✅ 統計画面
 Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
+
+// ✅ チーム関連ルート（認証必須）
+Route::middleware(['auth'])->prefix('teams')->group(function () {
+    Route::get('/create', [TeamController::class, 'create'])->name('teams.create');
+    Route::post('/', [TeamController::class, 'store'])->name('teams.store');
+
+    Route::get('/{team}', [TeamController::class, 'show'])->name('teams.show')->where(['team' => '[0-9]+']);
+    Route::get('/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit')->where(['team' => '[0-9]+']);
+    Route::patch('/{team}', [TeamController::class, 'update'])->name('teams.update')->where(['team' => '[0-9]+']);
+});
 
 // ✅ 認証が必要なルート
 Route::middleware(['auth'])->group(function () {
@@ -41,19 +53,15 @@ Route::middleware(['auth'])->group(function () {
     // マイページ
     Route::get('/mypage', function () {
         return Inertia::render('MyPage', [
-            'user' => Auth::user()->load('techStacks', 'urls'),
+            'user' => Auth::user()->load('techStacks', 'urls', 'teams:id,team_name'),
         ]);
     })->name('mypage');
 
-
-    // ✅ プロジェクト関連
+    // ✅ プロジェクト関連（認証必須）
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
-    Route::patch('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
-
-    // ✅ チーム関連
-    Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit')->where(['project' => '[0-9]+']);
+    Route::patch('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update')->where(['project' => '[0-9]+']);
 
     // ✅ プロフィール関連
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
