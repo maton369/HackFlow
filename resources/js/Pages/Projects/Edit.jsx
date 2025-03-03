@@ -19,6 +19,14 @@ export default function Edit({ auth, project }) {
         project_steps: project.project_steps ?? [], // 🔹 工程リストを追加
     });
 
+    // ✅ 技術スタックの追加・削除
+    const addTechStack = () => {
+        setData('tech_stacks', [...data.tech_stacks, { id: null, name: '' }]);
+    };
+    const removeTechStack = (index) => {
+        setData('tech_stacks', data.tech_stacks.filter((_, i) => i !== index));
+    };
+
     // ✅ タグの追加・削除
     const addTag = () => {
         setData('tags', [...data.tags, { id: null, name: '' }]);
@@ -123,6 +131,32 @@ export default function Edit({ auth, project }) {
                                     onChange={(e) => setData('live_url', e.target.value)}
                                     className="border-gray-300 rounded-md shadow-sm w-full"
                                 />
+                            </div>
+
+                            {/* ✅ 技術スタックの編集 */}
+                            <div className="mt-6">
+                                <h4 className="font-semibold">技術スタック</h4>
+                                {data.tech_stacks.map((stack, index) => (
+                                    <div key={index} className="flex items-center mt-2">
+                                        <input
+                                            type="text"
+                                            value={stack.name}
+                                            onChange={(e) => {
+                                                const newTechStacks = [...data.tech_stacks];
+                                                newTechStacks[index].name = e.target.value;
+                                                setData('tech_stacks', newTechStacks);
+                                            }}
+                                            className="border-gray-300 rounded-md shadow-sm w-full"
+                                            placeholder="技術スタック名"
+                                        />
+                                        <button type="button" className="ml-2 bg-red-500 text-white px-2 py-1 rounded" onClick={() => removeTechStack(index)}>
+                                            削除
+                                        </button>
+                                    </div>
+                                ))}
+                                <button type="button" className="mt-2 bg-green-500 text-white px-3 py-1 rounded" onClick={addTechStack}>
+                                    追加
+                                </button>
                             </div>
 
                             {/* ✅ タグの編集 */}

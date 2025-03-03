@@ -5,35 +5,97 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Project;
+use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\TechStack;
+use App\Models\Tag;
+use App\Models\ProjectStep;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 
 class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Project::all();
+        $projects = Project::with(['team', 'techStacks', 'tags'])->get();
         return Inertia::render('Home', ['projects' => $projects]);
     }
 
     public function create()
     {
-        return Inertia::render('Projects/Create');
+        // 🔥 ユーザーが所属しているチームのみを取得
+        $userTeams = Auth::user()->teams;
+        $techStacks = TechStack::all();
+        $tags = Tag::all();
+
+        return Inertia::render('Projects/Create', [
+            'teams' => $userTeams,
+            'techStacks' => $techStacks,
+            'tags' => $tags
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'project_name' => 'required|string|max:255',
+            'app_name' => 'nullable|string|max:255',
+            'project_image_url' => 'nullable|url|max:500',
+            'github_url' => 'nullable|url|max:500',
+            'live_url' => 'nullable|url|max:500',
+            'team_id' => 'required|exists:teams,id',
+            'tech_stack_ids' => 'array',
+            'tag_ids' => 'array',
+        ]);
+
+        $project = Project::create([
+            'project_name' => $validated['project_name'],
+            'app_name' => $validated['app_name'] ?? '',
+            'project_image_url' => $validated['project_image_url'] ?? '',
+            'github_url' => $validated['github_url'] ?? '',
+            'live_url' => $validated['live_url'] ?? '',
+            'team_id' => $validated['team_id'],
+            'like_count' => 0
+        ]);
+
+        // 🔥 `tech_stacks` & `tags` のリレーションを設定
+        if (!empty($validated['tech_stack_ids'])) {
+            $project->techStacks()->sync($validated['tech_stack_ids']);
+        }
+
+        if (!empty($validated['tag_ids'])) {
+            $project->tags()->sync($validated['tag_ids']);
+        }
+
+        return Redirect::route('projects.show', $project->id)
+            ->with('success', 'プロジェクトが作成されました！');
     }
 
     public function show(Project $project)
     {
-        $project->load('team.members.user', 'techStacks', 'tags', 'projectSteps');
+        // 🔥 team.members をロード
+        $project->load([
+            'team:id,team_name',
+            'team.users:id,name,email', // ✅ `users` テーブルのデータを取得
+            'techStacks:id,name',
+            'tags:id,name',
+            'projectSteps:id,project_id,title,description'
+        ]);
+
 
         return Inertia::render('Projects/Show', [
             'project' => $project
         ]);
     }
 
+
+
+
     public function edit(Project $project)
     {
         $user = auth()->user();
 
-        // そのプロジェクトのメンバーでない場合は 403 エラー
+        // 🔥 チームメンバーのみ編集可能
         $isMember = TeamMember::where('team_id', $project->team_id)
             ->where('user_id', $user->id)
             ->exists();
@@ -44,14 +106,18 @@ class ProjectController extends Controller
 
         $project->load('team', 'techStacks', 'tags', 'projectSteps');
 
-        return Inertia::render('Projects/Edit', ['project' => $project]);
+        return Inertia::render('Projects/Edit', [
+            'project' => $project,
+            'techStacks' => TechStack::all(),
+            'tags' => Tag::all()
+        ]);
     }
 
     public function update(Request $request, Project $project)
     {
         $user = auth()->user();
 
-        // そのプロジェクトのメンバーでない場合は 403 エラー
+        // 🔥 チームメンバーのみ編集可能
         $isMember = TeamMember::where('team_id', $project->team_id)
             ->where('user_id', $user->id)
             ->exists();
@@ -60,47 +126,64 @@ class ProjectController extends Controller
             abort(403, 'このプロジェクトを編集する権限がありません。');
         }
 
-        // バリデーション
         $validated = $request->validate([
             'project_name' => 'required|string|max:255',
             'app_name' => 'nullable|string|max:255',
-            'github_url' => 'nullable|url|max:255',
-            'live_url' => 'nullable|url|max:255',
+            'github_url' => 'nullable|url|max:500',
+            'live_url' => 'nullable|url|max:500',
             'tech_stacks' => 'array',
+            'tech_stacks.*.id' => 'nullable|integer|exists:tech_stacks,id',
+            'tech_stacks.*.name' => 'nullable|string|max:255',
             'tags' => 'array',
-            'project_steps' => 'array',
+            'tags.*.id' => 'nullable|integer|exists:tags,id',
+            'tags.*.name' => 'nullable|string|max:255',
         ]);
 
-        // プロジェクトの基本情報を更新
-        $project->update($validated);
+        // 🔥 プロジェクト情報更新
+        $project->update([
+            'project_name' => $validated['project_name'],
+            'app_name' => $validated['app_name'] ?? null,
+            'github_url' => $validated['github_url'] ?? null,
+            'live_url' => $validated['live_url'] ?? null,
+        ]);
 
-        // 🔹 `tech_stacks` を処理（新規追加対応）
-        $techStackIds = collect($request->input('tech_stacks', []))->map(function ($stack) {
-            if (empty($stack['id'])) {
-                $newStack = \App\Models\TechStack::firstOrCreate(['name' => $stack['name']]);
-                return $newStack->id;
+        // ✅ 技術スタックの処理（重複回避）
+        $techStackIds = [];
+        foreach ($validated['tech_stacks'] as $techStack) {
+            if (!empty($techStack['id'])) {
+                $techStackIds[] = $techStack['id'];
+            } else {
+                // 🔥 すでに存在する技術スタックを再利用
+                $existingTechStack = \App\Models\TechStack::where('name', $techStack['name'])->first();
+                if ($existingTechStack) {
+                    $techStackIds[] = $existingTechStack->id;
+                } else {
+                    $newTechStack = \App\Models\TechStack::create(['name' => $techStack['name']]);
+                    $techStackIds[] = $newTechStack->id;
+                }
             }
-            return $stack['id'];
-        })->filter()->all(); // 🔥 空の ID は削除
-
-        // 🔹 `tags` を処理（新規追加対応）
-        $tagIds = collect($request->input('tags', []))->map(function ($tag) {
-            if (empty($tag['id'])) {
-                $newTag = \App\Models\Tag::firstOrCreate(['name' => $tag['name']]);
-                return $newTag->id;
-            }
-            return $tag['id'];
-        })->filter()->all(); // 🔥 空の ID は削除
-
-        // 🔹 `sync()` でリレーション更新
+        }
         $project->techStacks()->sync($techStackIds);
+
+        // ✅ タグの処理（重複回避）
+        $tagIds = [];
+        foreach ($validated['tags'] as $tag) {
+            if (!empty($tag['id'])) {
+                $tagIds[] = $tag['id'];
+            } else {
+                // 🔥 すでに存在するタグを再利用
+                $existingTag = \App\Models\Tag::where('name', $tag['name'])->first();
+                if ($existingTag) {
+                    $tagIds[] = $existingTag->id;
+                } else {
+                    $newTag = \App\Models\Tag::create(['name' => $tag['name']]);
+                    $tagIds[] = $newTag->id;
+                }
+            }
+        }
         $project->tags()->sync($tagIds);
 
-        // 🔹 `HasMany` の `project_steps` を手動更新
-        $project->projectSteps()->delete(); // 既存データ削除
-        $project->projectSteps()->createMany($request->input('project_steps', [])); // 新しく作成
-
-        return redirect()->route('projects.show', $project->id)
-            ->with('success', 'プロジェクト情報を更新しました。');
+        return Redirect::route('projects.show', $project->fresh()->id)
+            ->with('success', 'プロジェクト情報を更新しました！');
     }
 }
