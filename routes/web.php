@@ -15,20 +15,22 @@ use Illuminate\Support\Facades\Auth;
 // ✅ ホーム画面（ログイン不要）
 Route::get('/', function () {
     return Inertia::render('Home', [
-        'projects' => Project::all(),
+        'projects' => Project::with('team')->get(),
         'teams' => Team::all(),
     ]);
 })->name('home');
 
 // ✅ プロジェクトとチームの詳細はログインなしでも見れる
-Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show')->where(['project' => '[0-9]+']);
-Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->where(['team' => '[0-9]+']);
+Route::get('/projects/{project}', [ProjectController::class, 'show'])
+    ->name('projects.show')->where(['project' => '[0-9]+']);
+
+Route::get('/teams/{team}', [TeamController::class, 'show'])
+    ->name('teams.show')->where(['team' => '[0-9]+']);
 
 // ✅ ユーザー関連
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')->where(['user' => '[0-9]+']);
 Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
-
 
 // ✅ 統計画面
 Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
@@ -43,6 +45,21 @@ Route::middleware(['auth'])->prefix('teams')->group(function () {
     Route::patch('/{team}', [TeamController::class, 'update'])->name('teams.update')->where(['team' => '[0-9]+']);
 });
 
+// ✅ プロジェクト関連ルート（認証必須）
+Route::middleware(['auth'])->prefix('projects')->group(function () {
+    Route::get('/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
+
+    Route::get('/{project}/edit', [ProjectController::class, 'edit'])
+        ->name('projects.edit')->where(['project' => '[0-9]+']);
+
+    Route::patch('/{project}', [ProjectController::class, 'update'])
+        ->name('projects.update')->where(['project' => '[0-9]+']);
+
+    Route::delete('/{project}', [ProjectController::class, 'destroy'])
+        ->name('projects.destroy')->where(['project' => '[0-9]+']);
+});
+
 // ✅ 認証が必要なルート
 Route::middleware(['auth'])->group(function () {
     // ダッシュボード
@@ -50,18 +67,12 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    // マイページ
+    // マイページ（チーム名を正しく取得する）
     Route::get('/mypage', function () {
         return Inertia::render('MyPage', [
             'user' => Auth::user()->load('techStacks', 'urls', 'teams:id,team_name'),
         ]);
     })->name('mypage');
-
-    // ✅ プロジェクト関連（認証必須）
-    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit')->where(['project' => '[0-9]+']);
-    Route::patch('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update')->where(['project' => '[0-9]+']);
 
     // ✅ プロフィール関連
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
