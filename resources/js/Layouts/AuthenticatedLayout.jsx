@@ -27,6 +27,7 @@ export default function Authenticated({ user, header, children }) {
                             </div>
                         </div>
 
+                        {/* ✅ ユーザー名からマイページに遷移できるように修正 */}
                         <div className="hidden sm:flex sm:items-center sm:ms-6">
                             <div className="ms-3 relative">
                                 <Dropdown>
@@ -46,7 +47,7 @@ export default function Authenticated({ user, header, children }) {
                                                 >
                                                     <path
                                                         fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a 1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
                                                         clipRule="evenodd"
                                                     />
                                                 </svg>
@@ -55,9 +56,11 @@ export default function Authenticated({ user, header, children }) {
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
+                                        {/* ✅ ここを修正: マイページに遷移するリンクを追加 */}
+                                        <Dropdown.Link href={route('mypage')}>マイページ</Dropdown.Link>
+                                        <Dropdown.Link href={route('profile.edit')}>プロフィール編集</Dropdown.Link>
                                         <Dropdown.Link href={route('logout')} method="post" as="button">
-                                            Log Out
+                                            ログアウト
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
@@ -104,9 +107,11 @@ export default function Authenticated({ user, header, children }) {
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
+                            {/* ✅ スマホ用のナビゲーションにもマイページを追加 */}
+                            <ResponsiveNavLink href={route('mypage')}>マイページ</ResponsiveNavLink>
+                            <ResponsiveNavLink href={route('profile.edit')}>プロフィール編集</ResponsiveNavLink>
                             <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
+                                ログアウト
                             </ResponsiveNavLink>
                         </div>
                     </div>

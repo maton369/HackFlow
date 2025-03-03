@@ -31,22 +31,28 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'bio' => ['nullable', 'string', 'max:500'], // 🔥 追加
+            'tech_level' => ['nullable', 'in:beginner,intermediate,advanced'], // 🔥 追加
+            'profile_image_url' => ['nullable', 'url'], // 🔥 追加
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'bio' => $validated['bio'] ?? null,
+            'tech_level' => $validated['tech_level'] ?? null,
+            'profile_image_url' => $validated['profile_image_url'] ?? null,
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        return redirect()->route('mypage'); // 🔥 登録後にマイページへリダイレクト
     }
 }

@@ -1,33 +1,236 @@
+import { useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import DeleteUserForm from './Partials/DeleteUserForm';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
-import { Head } from '@inertiajs/react';
+import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/InputLabel';
+import PrimaryButton from '@/Components/PrimaryButton';
+import TextInput from '@/Components/TextInput';
+import { Head, useForm } from '@inertiajs/react';
 
-export default function Edit({ auth, mustVerifyEmail, status }) {
+export default function Edit({ auth, user }) {
+    const { data, setData, patch, processing, errors, reset } = useForm({
+        name: user.name,
+        email: user.email,
+        password: '',
+        password_confirmation: '',
+        bio: user.bio || '',
+        tech_level: user.tech_level || '',
+        profile_image_url: user.profile_image_url || '',
+        tech_stacks: user.tech_stacks.map(stack => stack.name) ?? [],
+        urls: user.urls ?? [],
+    });
+
+    useEffect(() => {
+        return () => {
+            reset('password', 'password_confirmation');
+        };
+    }, []);
+
+    const submit = (e) => {
+        e.preventDefault();
+        patch(route('profile.update'), {
+            data: {
+                ...data,
+                tech_stacks: data.tech_stacks.filter(stack => stack.trim() !== ""), // 🔥 空白の値を削除
+            },
+            preserveScroll: true,
+            onSuccess: () => {
+                alert('✅ プロフィールが更新されました！');
+                Inertia.visit(route('mypage'));
+            },
+            onError: (errors) => console.error("❌ 更新エラー:", errors),
+        });
+    };
+
+
+
+    // ✅ 関連URLの追加・削除
+    const addUrl = () => {
+        setData('urls', [...data.urls, { id: null, url: '', url_type: '' }]);
+    };
+
+    const removeUrl = (index) => {
+        setData('urls', data.urls.filter((_, i) => i !== index));
+    };
+
+    const updateUrl = (index, field, value) => {
+        const newUrls = [...data.urls];
+        newUrls[index][field] = value;
+        setData('urls', newUrls);
+    };
+
+    // ✅ 技術スタックの追加・削除
+    const addTechStack = () => {
+        setData('tech_stacks', [...data.tech_stacks, '']);
+    };
+
+    const removeTechStack = (index) => {
+        setData('tech_stacks', data.tech_stacks.filter((_, i) => i !== index));
+    };
+
+    const updateTechStack = (index, value) => {
+        const newTechStacks = [...data.tech_stacks];
+        newTechStacks[index] = value;
+        setData('tech_stacks', newTechStacks);
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Profile</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">プロフィール編集</h2>}
         >
-            <Head title="Profile" />
+            <Head title="プロフィール編集" />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                    <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                        <UpdateProfileInformationForm
-                            mustVerifyEmail={mustVerifyEmail}
-                            status={status}
-                            className="max-w-xl"
-                        />
-                    </div>
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <form onSubmit={submit}>
+                            {/* 🔥 基本情報 */}
+                            <div>
+                                <InputLabel htmlFor="name" value="名前" />
+                                <TextInput
+                                    id="name"
+                                    name="name"
+                                    value={data.name}
+                                    className="mt-1 block w-full"
+                                    autoComplete="name"
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.name} className="mt-2" />
+                            </div>
 
-                    <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                        <UpdatePasswordForm className="max-w-xl" />
-                    </div>
+                            <div className="mt-4">
+                                <InputLabel htmlFor="email" value="メールアドレス" />
+                                <TextInput
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    value={data.email}
+                                    className="mt-1 block w-full"
+                                    autoComplete="email"
+                                    onChange={(e) => setData('email', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.email} className="mt-2" />
+                            </div>
 
-                    <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                        <DeleteUserForm className="max-w-xl" />
+                            {/* 🔥 自己紹介 */}
+                            <div className="mt-4">
+                                <InputLabel htmlFor="bio" value="自己紹介" />
+                                <TextInput
+                                    id="bio"
+                                    name="bio"
+                                    value={data.bio}
+                                    className="mt-1 block w-full"
+                                    onChange={(e) => setData('bio', e.target.value)}
+                                />
+                                <InputError message={errors.bio} className="mt-2" />
+                            </div>
+
+                            {/* 🔥 プロフィール画像URL */}
+                            <div className="mt-4">
+                                <InputLabel htmlFor="profile_image_url" value="プロフィール画像URL" />
+                                <TextInput
+                                    id="profile_image_url"
+                                    type="url"
+                                    name="profile_image_url"
+                                    value={data.profile_image_url}
+                                    className="mt-1 block w-full"
+                                    autoComplete="url"
+                                    onChange={(e) => setData('profile_image_url', e.target.value)}
+                                />
+                                <InputError message={errors.profile_image_url} className="mt-2" />
+                            </div>
+
+                            {/* 🔥 技術レベル */}
+                            <div className="mt-4">
+                                <InputLabel htmlFor="tech_level" value="技術レベル" />
+                                <select
+                                    id="tech_level"
+                                    name="tech_level"
+                                    value={data.tech_level}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                    onChange={(e) => setData('tech_level', e.target.value)}
+                                >
+                                    <option value="">選択してください</option>
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                                <InputError message={errors.tech_level} className="mt-2" />
+                            </div>
+
+                            {/* 🔥 技術スタック */}
+                            <div className="mt-4">
+                                <InputLabel value="技術スタック" />
+                                {data.tech_stacks.map((stack, index) => (
+                                    <div key={index} className="flex space-x-2 mt-2">
+                                        <TextInput
+                                            value={stack}
+                                            className="w-full"
+                                            onChange={(e) => updateTechStack(index, e.target.value)}
+                                        />
+                                        <button type="button" onClick={() => removeTechStack(index)} className="text-red-500">
+                                            削除
+                                        </button>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={addTechStack} className="mt-2 text-blue-500">
+                                    + 技術を追加
+                                </button>
+                            </div>
+
+
+
+                            {/* 🔥 関連URL */}
+                            <div className="mt-4">
+                                <InputLabel value="関連URL" />
+                                {data.urls.map((url, index) => (
+                                    <div key={index} className="flex space-x-2 mt-2">
+                                        <select
+                                            value={url.url_type}
+                                            className="border-gray-300 rounded-md shadow-sm"
+                                            onChange={(e) => updateUrl(index, 'url_type', e.target.value)}
+                                        >
+                                            <option value="">種類を選択</option>
+                                            <option value="GitHub">GitHub</option>
+                                            <option value="Portfolio">Portfolio</option>
+                                            <option value="LinkedIn">LinkedIn</option>
+                                            <option value="Twitter">Twitter</option>
+                                            <option value="Other">その他</option>
+                                        </select>
+                                        <TextInput
+                                            value={url.url}
+                                            className="w-full"
+                                            onChange={(e) => updateUrl(index, 'url', e.target.value)}
+                                        />
+                                        <button type="button" onClick={() => removeUrl(index)} className="text-red-500">
+                                            削除
+                                        </button>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={addUrl} className="mt-2 text-blue-500">
+                                    + URLを追加
+                                </button>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-4">
+                                {/* 🔥 マイページに戻るボタン */}
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.href = route('mypage')}
+                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                >
+                                    マイページに戻る
+                                </button>
+
+                                {/* 🔥 更新ボタン */}
+                                <PrimaryButton className="ms-4" disabled={processing}>
+                                    更新
+                                </PrimaryButton>
+                            </div>
+
+                        </form>
                     </div>
                 </div>
             </div>
