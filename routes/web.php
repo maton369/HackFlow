@@ -43,6 +43,8 @@ Route::middleware(['auth'])->prefix('teams')->group(function () {
     Route::get('/{team}', [TeamController::class, 'show'])->name('teams.show')->where(['team' => '[0-9]+']);
     Route::get('/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit')->where(['team' => '[0-9]+']);
     Route::patch('/{team}', [TeamController::class, 'update'])->name('teams.update')->where(['team' => '[0-9]+']);
+
+    Route::delete('/{team}', [TeamController::class, 'destroy'])->name('teams.destroy')->where(['team' => '[0-9]+']);
 });
 
 // ✅ プロジェクト関連ルート（認証必須）

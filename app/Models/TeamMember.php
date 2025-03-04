@@ -27,4 +27,17 @@ class TeamMember extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleted(function ($teamMember) {
+            $team = $teamMember->team;
+
+            if ($team && $team->members()->count() === 0) {
+                $team->delete();
+            }
+        });
+    }
 }

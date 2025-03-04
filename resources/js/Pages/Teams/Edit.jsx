@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -12,15 +12,37 @@ export default function Edit({ auth, team }) {
     const { data, setData, patch, processing, errors } = useForm({
         team_name: team.team_name,
         team_image_url: team.team_image_url || '',
-        members: team.members.map(member => member.user_id), // メンバーのIDを格納
+        // ✅ 常にリーダーを含む
+        members: [
+            auth.user.id,
+            ...team.members
+                .filter(member => member.user?.id !== auth.user.id)
+                .map(member => member.user.id),
+        ],
     });
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [selectedMembers, setSelectedMembers] = useState(team.members);
+    const [selectedMembers, setSelectedMembers] = useState([
+        { user_id: auth.user.id, name: auth.user.name, role: 'owner' }, // ✅ リーダーを先に追加
+        ...team.members
+            .filter(member => member.user?.id !== auth.user.id)
+            .map(member => ({
+                user_id: member.user.id,
+                name: member.user.name,
+            })),
+    ]);
 
     useEffect(() => {
-        setSelectedMembers(team.members);
+        setSelectedMembers([
+            { user_id: auth.user.id, name: auth.user.name, role: 'owner' }, // ✅ リーダーを再設定
+            ...team.members
+                .filter(member => member.user?.id !== auth.user.id)
+                .map(member => ({
+                    user_id: member.user.id,
+                    name: member.user.name,
+                })),
+        ]);
     }, [team]);
 
     // 🔍 ユーザー検索
@@ -38,7 +60,7 @@ export default function Edit({ auth, team }) {
         }
     };
 
-    // ✅ メンバー追加
+    // ✅ メンバー追加（リーダーは追加できない）
     const addMember = (user) => {
         if (!selectedMembers.find(member => member.user_id === user.id) && user.id !== auth.user.id) {
             setSelectedMembers([...selectedMembers, { user_id: user.id, name: user.name }]);
@@ -46,15 +68,21 @@ export default function Edit({ auth, team }) {
         }
     };
 
-    // ❌ メンバー削除
+    // ❌ メンバー削除（リーダーは削除できない）
     const removeMember = (userId) => {
+        if (userId === auth.user.id) {
+            alert("⚠️ リーダーは削除できません。");
+            return;
+        }
+
         const updatedMembers = selectedMembers.filter(member => member.user_id !== userId);
         setSelectedMembers(updatedMembers);
-        setData('members', updatedMembers.map(user => user.user_id));
+        setData('members', [auth.user.id, ...updatedMembers.map(user => user.user_id)]); // ✅ リーダーを再追加
     };
 
     const submit = (e) => {
         e.preventDefault();
+        setData('members', [auth.user.id, ...selectedMembers.map(member => member.user_id)]); // ✅ リーダーを最終確認で追加
         patch(route('teams.update', team.id));
     };
 
@@ -117,21 +145,23 @@ export default function Edit({ auth, team }) {
                                 )}
                             </div>
 
-                            {/* 👥 選択されたメンバー */}
+                            {/* 👥 選択されたメンバー（リーダーを含む） */}
                             <div className="mt-4">
                                 <h4 className="font-semibold">選択されたメンバー</h4>
                                 {selectedMembers.length > 0 ? (
                                     <ul className="list-disc pl-5">
                                         {selectedMembers.map((user) => (
                                             <li key={user.user_id} className="flex justify-between items-center">
-                                                {user.name}
-                                                <button
-                                                    type="button"
-                                                    className="text-red-500 ml-2"
-                                                    onClick={() => removeMember(user.user_id)}
-                                                >
-                                                    ❌
-                                                </button>
+                                                {user.name} {user.user_id === auth.user.id ? "(リーダー)" : ""}
+                                                {user.user_id !== auth.user.id && (
+                                                    <button
+                                                        type="button"
+                                                        className="text-red-500 ml-2"
+                                                        onClick={() => removeMember(user.user_id)}
+                                                    >
+                                                        ❌
+                                                    </button>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
