@@ -68,4 +68,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(TeamMember::class, 'user_id');
     }
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'team_members', 'user_id', 'team_id', 'id', 'team_id')
+            ->with('team');
+    }
 }

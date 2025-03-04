@@ -112,7 +112,7 @@ export default function Register() {
 
                 {/* 🔥 tech_levelフィールド追加 */}
                 <div className="mt-4">
-                    <InputLabel htmlFor="tech_level" value="技術レベル (任意)" />
+                    <InputLabel htmlFor="tech_level" value="技術レベル (必須)" />
                     <select
                         id="tech_level"
                         name="tech_level"

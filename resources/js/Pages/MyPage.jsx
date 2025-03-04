@@ -104,6 +104,27 @@ export default function MyPage({ auth }) {
                                 )}
                             </div>
 
+                            {/* ✅ 関係するプロジェクト一覧 */}
+                            <div className="mt-6">
+                                <h4 className="font-semibold">関係するプロジェクト</h4>
+                                {user.projects && user.projects.length > 0 ? (
+                                    <ul className="list-disc pl-5">
+                                        {user.projects.map(project => (
+                                            <li key={project.id}>
+                                                <Link
+                                                    href={route('projects.show', project.id)}
+                                                    className="text-blue-500 hover:underline"
+                                                >
+                                                    {project.project_name} ({project.team?.team_name || "チームなし"})
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500">関係するプロジェクトがありません。</p>
+                                )}
+                            </div>
+
                             {/* ✅ ボタン一覧 */}
                             <div className="mt-6 space-y-2">
                                 <Link
