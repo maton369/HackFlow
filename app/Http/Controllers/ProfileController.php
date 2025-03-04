@@ -7,11 +7,16 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\User;
 use App\Models\TechStack;
 use App\Models\UserUrl;
+use App\Models\Team;
+use App\Models\Project;
+use App\Models\TeamMember;
+
 
 class ProfileController extends Controller
 {
@@ -101,14 +106,62 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        Auth::logout();
-        $user->delete();
+        DB::transaction(function () use ($user) {
+            // 🔥 1. ユーザーがオーナーのチームを処理
+            $teamsOwnedByUser = Team::whereHas('members', function ($query) use ($user) {
+                $query->where('user_id', $user->id)->where('role', 'owner');
+            })->get();
 
+            foreach ($teamsOwnedByUser as $team) {
+                $teamMembers = $team->members()->where('user_id', '!=', $user->id)->get();
+
+                if ($teamMembers->count() > 0) {
+                    // ✅ 他のメンバーがいれば、新しいオーナーを設定
+                    $newOwner = $teamMembers->first();
+                    $newOwner->update(['role' => 'owner']);
+                } else {
+                    // ❌ 他のメンバーがいなければ、チームと関連プロジェクトを削除
+                    $team->projects()->delete();
+                    $team->delete();
+                }
+            }
+
+            // 🔥 2. ユーザーがメンバーとして所属するチームの削除
+            TeamMember::where('user_id', $user->id)->delete();
+
+            // 🔥 3. プロジェクトのリーダーの処理
+            $projectsLedByUser = Project::whereHas('team.members', function ($query) use ($user) {
+                $query->where('user_id', $user->id)->where('role', 'owner');
+            })->get();
+
+            foreach ($projectsLedByUser as $project) {
+                $teamMembers = $project->team->members()->where('user_id', '!=', $user->id)->get();
+
+                if ($teamMembers->count() > 0) {
+                    // ✅ 他のメンバーがいれば、新しいオーナーを設定
+                    $newOwner = $teamMembers->first();
+                    TeamMember::where('team_id', $project->team_id)->where('user_id', $newOwner->user_id)
+                        ->update(['role' => 'owner']);
+                } else {
+                    // ❌ チームが削除された場合、プロジェクトも削除
+                    $project->delete();
+                }
+            }
+
+            // 🔥 4. ユーザー削除
+            $user->delete();
+        });
+
+        // セッションを無効化し、ログアウト
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return Redirect::to('/')->with('success', 'アカウントが削除されました。');
     }
+
+
+
 
     public function mypage(Request $request): Response
     {

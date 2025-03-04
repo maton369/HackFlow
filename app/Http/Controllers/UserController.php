@@ -36,4 +36,18 @@ class UserController extends Controller
 
         return response()->json(['users' => $users]);
     }
+
+    public function mypage()
+    {
+        $user = Auth::user()->load([
+            'techStacks',
+            'urls',
+            'teams',
+            'projects:id,project_name,team_id' // ✅ 明示的に `project_name` を取得
+        ]);
+
+        return Inertia::render('MyPage', [
+            'auth' => ['user' => $user]
+        ]);
+    }
 }

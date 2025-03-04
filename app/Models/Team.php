@@ -16,6 +16,11 @@ class Team extends Model
         'team_image_url',
     ];
 
+    public function owner(): HasOne
+    {
+        return $this->hasOne(TeamMember::class, 'team_id')->where('role', 'owner');
+    }
+
     public function members(): HasMany
     {
         return $this->hasMany(TeamMember::class, 'team_id');

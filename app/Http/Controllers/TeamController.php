@@ -36,7 +36,6 @@ class TeamController extends Controller
         $team = Team::create([
             'team_name' => $validated['team_name'],
             'team_image_url' => $validated['team_image_url'] ?? '',
-            'owner_id' => Auth::id(),
         ]);
 
         // 🔥 オーナー登録
@@ -58,7 +57,6 @@ class TeamController extends Controller
         return Redirect::route('teams.show', $team->id)->with('success', 'チームが作成されました！');
     }
 
-
     /**
      * チーム詳細を表示
      */
@@ -75,14 +73,16 @@ class TeamController extends Controller
     {
         $team = Team::with('members.user')->findOrFail($id);
 
+        // 🔥 チームのオーナーを取得
+        $owner = $team->members()->where('role', 'owner')->first();
+
         // オーナーのみ編集可能
-        if ($team->owner_id !== Auth::id()) {
+        if ($owner->user_id !== Auth::id()) {
             return Redirect::route('teams.show', $team->id)->with('error', '編集権限がありません。');
         }
 
         return Inertia::render('Teams/Edit', ['team' => $team]);
     }
-
 
     /**
      * チーム情報を更新
@@ -91,8 +91,11 @@ class TeamController extends Controller
     {
         $team = Team::findOrFail($id);
 
-        // 🔥 オーナーのみ更新可能
-        if ($team->owner_id !== Auth::id()) {
+        // 🔥 チームのオーナーを取得
+        $owner = $team->members()->where('role', 'owner')->first();
+
+        // オーナーのみ更新可能
+        if ($owner->user_id !== Auth::id()) {
             return Redirect::route('teams.show', $team->id)->with('error', '更新権限がありません。');
         }
 
@@ -110,8 +113,14 @@ class TeamController extends Controller
 
         // メンバー更新
         TeamMember::where('team_id', $team->id)->delete();
+
         foreach ($validated['members'] as $userId) {
-            TeamMember::create(['team_id' => $team->id, 'user_id' => $userId, 'role' => 'member']);
+            $role = ($userId == Auth::id()) ? 'owner' : 'member';
+            TeamMember::create([
+                'team_id' => $team->id,
+                'user_id' => $userId,
+                'role' => $role
+            ]);
         }
 
         return Redirect::route('teams.show', $team->id)->with('success', 'チームが更新されました！');

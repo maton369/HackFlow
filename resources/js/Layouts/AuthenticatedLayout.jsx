@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
@@ -7,6 +8,22 @@ import { Link } from '@inertiajs/react';
 
 export default function Authenticated({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const { delete: destroy, processing, setData, data } = useForm({
+        password: ''
+    });
+
+
+    // ✅ アカウント削除処理
+    const handleDeleteAccount = () => {
+        if (confirm("本当にアカウントを削除しますか？ この操作は元に戻せません。")) {
+            destroy(route('profile.destroy'), {
+                data,
+                preserveScroll: true,
+                onSuccess: () => alert("アカウントが削除されました。"),
+                onError: (errors) => alert(errors.password || "エラーが発生しました。"),
+            });
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -62,6 +79,28 @@ export default function Authenticated({ user, header, children }) {
                                         <Dropdown.Link href={route('logout')} method="post" as="button">
                                             ログアウト
                                         </Dropdown.Link>
+
+                                        <hr className="my-2" />
+                                        {/* ✅ アカウント削除ボタン */}
+                                        <div className="px-4 py-2">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                パスワードを入力して削除
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={data.password}
+                                                onChange={(e) => setData('password', e.target.value)}
+                                                className="border-gray-300 rounded-md shadow-sm w-full mt-2"
+                                                placeholder="パスワード"
+                                            />
+                                            <button
+                                                onClick={handleDeleteAccount}
+                                                className="mt-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 w-full"
+                                                disabled={processing}
+                                            >
+                                                アカウント削除
+                                            </button>
+                                        </div>
                                     </Dropdown.Content>
                                 </Dropdown>
                             </div>
@@ -113,6 +152,26 @@ export default function Authenticated({ user, header, children }) {
                             <ResponsiveNavLink method="post" href={route('logout')} as="button">
                                 ログアウト
                             </ResponsiveNavLink>
+                            {/* ✅ アカウント削除ボタンをスマホメニューにも追加 */}
+                            <div className="px-4 py-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                    パスワードを入力して削除
+                                </label>
+                                <input
+                                    type="password"
+                                    value={data.password}
+                                    onChange={(e) => setData('password', e.target.value)}
+                                    className="border-gray-300 rounded-md shadow-sm w-full mt-2"
+                                    placeholder="パスワード"
+                                />
+                                <button
+                                    onClick={handleDeleteAccount}
+                                    className="mt-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 w-full"
+                                    disabled={processing}
+                                >
+                                    アカウント削除
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

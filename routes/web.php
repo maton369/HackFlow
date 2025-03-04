@@ -68,9 +68,14 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 
     // マイページ（チーム名を正しく取得する）
-    Route::get('/mypage', function () {
+    Route::middleware(['auth'])->get('/mypage', function () {
         return Inertia::render('MyPage', [
-            'user' => Auth::user()->load('techStacks', 'urls', 'teams:id,team_name'),
+            'user' => Auth::user()->load([
+                'techStacks',
+                'urls',
+                'teams:id,team_name',
+                'projects:id,project_name,team_id' // ✅ 関係するプロジェクトを追加
+            ])
         ]);
     })->name('mypage');
 
