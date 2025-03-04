@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Team;
@@ -203,11 +204,32 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        $project->delete();
+        // ✅ ユーザーがプロジェクトのリーダーか確認
+        $isLeader = $project->team
+            ->users()
+            ->where('users.id', auth()->id())
+            ->wherePivot('role', 'owner') // リーダー判定
+            ->exists();
 
-        // 🔥 統計データを更新
-        TechStackStatistic::updateStatistics();
+        if (!$isLeader) {
+            return redirect()->route('projects.show', $project->id)
+                ->with('error', 'プロジェクトを削除できるのはリーダーのみです。');
+        }
 
-        return Redirect::route('home')->with('success', 'プロジェクトが削除されました！');
+        DB::transaction(function () use ($project) {
+            // 🔥 関連データの削除
+            $project->projectSteps()->delete(); // ✅ 正しいメソッド名を使用
+            $project->techStacks()->detach(); // ✅ メソッド名を統一（camelCase）
+            $project->tags()->detach();
+
+            // 🔥 プロジェクトの削除
+            $project->delete();
+
+            // 🔥 統計データを更新
+            TechStackStatistic::updateStatistics();
+        });
+
+
+        return redirect()->route('home')->with('success', 'プロジェクトが削除されました！');
     }
 }
