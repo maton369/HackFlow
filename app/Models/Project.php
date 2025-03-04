@@ -21,7 +21,7 @@ class Project extends Model
 
     public function team()
     {
-        return $this->belongsTo(Team::class);
+        return $this->belongsTo(Team::class)->with('users');
     }
 
     public function techStacks()

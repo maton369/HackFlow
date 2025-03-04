@@ -16,7 +16,7 @@ class Team extends Model
         'team_image_url',
     ];
 
-    public function owner(): HasOne
+    public function owner()
     {
         return $this->hasOne(TeamMember::class, 'team_id')->where('role', 'owner');
     }
@@ -28,8 +28,10 @@ class Team extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'team_members', 'team_id', 'user_id');
+        return $this->belongsToMany(User::class, 'team_members', 'team_id', 'user_id')
+            ->withPivot('role'); // 🔥 `role` を取得
     }
+
 
     public function projects()
     {

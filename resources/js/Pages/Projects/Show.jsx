@@ -1,14 +1,40 @@
 import { useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 
 export default function Show({ auth, project }) {
+    const { delete: destroy, processing } = useForm();
+
     useEffect(() => {
         console.log("✅ プロジェクトデータ:", project);
-        console.log("✅ チームのメンバー:", project.team?.users); // ✅ `members` → `users`
+        console.log("✅ チームのメンバー:", project.team?.users);
         console.log("✅ 認証ユーザー:", auth.user);
+
+        // ✅ ユーザーとその役割をデバッグ
+        if (project.team?.users) {
+            project.team.users.forEach(user => {
+                console.log(`👤 ユーザーID: ${user.id}, 役割: ${user.pivot?.role}`);
+            });
+        }
     }, [project, auth]);
+
+    // ✅ ユーザーがプロジェクトのリーダーか判定（デバッグを追加）
+    const isLeader = (project.team?.users ?? []).some(user => {
+        console.log(`🔍 チェック: ${user.id} === ${auth.user.id}, 役割: ${user.pivot?.role}`);
+        return user.id === auth.user.id && user.pivot?.role === 'owner';
+    });
+
+    console.log("🔥 isLeader 判定:", isLeader); // ✅ ここでリーダー判定の結果を出力
+
+    // ✅ プロジェクト削除処理
+    const handleDelete = () => {
+        if (confirm("本当にこのプロジェクトを削除しますか？ この操作は元に戻せません。")) {
+            destroy(route('projects.destroy', project.id), {
+                onSuccess: () => router.visit(route('home')),
+            });
+        }
+    };
 
     return auth.user ? (
         <AuthenticatedLayout
@@ -79,13 +105,23 @@ export default function Show({ auth, project }) {
 
                         {/* ✅ チームメンバーのみ編集ボタンを表示 */}
                         {(project.team?.users ?? []).some(user => user.id === auth.user.id) && (
-                            <div className="mt-6">
+                            <div className="mt-6 space-x-2">
                                 <Link
                                     href={route('projects.edit', project.id)}
                                     className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
                                 >
                                     編集
                                 </Link>
+                                {/* ✅ リーダーのみ削除ボタンを表示 */}
+                                {isLeader && (
+                                    <button
+                                        onClick={handleDelete}
+                                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                                        disabled={processing}
+                                    >
+                                        削除
+                                    </button>
+                                )}
                             </div>
                         )}
 
