@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Models\Team;
 use App\Models\TeamMember;
@@ -124,5 +125,34 @@ class TeamController extends Controller
         }
 
         return Redirect::route('teams.show', $team->id)->with('success', 'チームが更新されました！');
+    }
+
+    public function destroy($id)
+    {
+        $team = Team::with('members')->findOrFail($id);
+
+        if (!$team) {
+            return redirect()->route('home')->with('success', 'チームが削除されました。');
+        };
+
+        // 🔥 現在のユーザーがリーダーかチェック
+        $isLeader = $team->members->where('user_id', auth()->id())->where('role', 'owner')->count() > 0;
+
+        if (!$isLeader) {
+            return redirect()->route('teams.show', $team->id)->with('error', 'チームを削除できるのはリーダーのみです。');
+        }
+
+        DB::transaction(function () use ($team) {
+            // 🔥 関連するプロジェクトを削除
+            $team->projects()->delete();
+
+            // 🔥 チームメンバーを削除
+            TeamMember::where('team_id', $team->id)->delete();
+
+            // 🔥 チームを削除
+            $team->delete();
+        });
+
+        return redirect()->route('home')->with('success', 'チームが削除されました。');
     }
 }
