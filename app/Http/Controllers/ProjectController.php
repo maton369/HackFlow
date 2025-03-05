@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Models\Project;
+use App\Models\User;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\TechStack;
@@ -32,7 +33,14 @@ class ProjectController extends Controller
                 ];
             });
 
-        return Inertia::render('Home', ['projects' => $projects]);
+        $teams = Team::select('id', 'team_name')->get();
+        $users = User::select('id', 'name')->get();
+
+        return Inertia::render('Home', [
+            'projects' => $projects,
+            'teams' => $teams,
+            'users' => $users,
+        ]);
     }
 
 
