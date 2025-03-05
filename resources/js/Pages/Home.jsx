@@ -1,9 +1,81 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function Home({ auth, projects, teams }) {
     const isAuthenticated = auth.user !== null;
+
+    // プロジェクトごとのいいね状態といいね数を管理
+    const [likes, setLikes] = useState({});
+    const [likeCounts, setLikeCounts] = useState(() => {
+        return projects.reduce((acc, project) => {
+            acc[project.id] = project.like_count; // 初期値にサーバーからの `like_count`
+            return acc;
+        }, {});
+    });
+
+    useEffect(() => {
+        // ✅ いいね数をAPIから最新のデータに更新
+        const fetchLikeCounts = async () => {
+            const countsData = { ...likeCounts };
+            await Promise.all(
+                projects.map(async (project) => {
+                    try {
+                        const response = await axios.get(`/projects/${project.id}/like-count`);
+                        countsData[project.id] = response.data.count;
+                    } catch (error) {
+                        console.error(`Failed to fetch like count for project ${project.id}`, error);
+                    }
+                })
+            );
+            setLikeCounts(countsData); // 更新データをセット
+        };
+
+        fetchLikeCounts();
+
+        // ✅ いいね状態はログインしている場合のみ取得
+        if (isAuthenticated) {
+            const fetchLikes = async () => {
+                const likesData = {};
+                for (const project of projects) {
+                    try {
+                        const response = await axios.get(`/projects/${project.id}/is-liked`);
+                        likesData[project.id] = response.data.liked;
+                    } catch (error) {
+                        console.error(`Failed to fetch like status for project ${project.id}`, error);
+                    }
+                }
+                setLikes(likesData);
+            };
+
+            fetchLikes();
+        }
+    }, [projects, isAuthenticated]);
+
+    const toggleLike = async (projectId) => {
+        if (!isAuthenticated) {
+            alert("ログインが必要です");
+            return;
+        }
+
+        try {
+            const response = await axios.post(`/projects/${projectId}/like`);
+            setLikes((prevLikes) => ({
+                ...prevLikes,
+                [projectId]: response.data.liked
+            }));
+
+            // ✅ いいね数を更新
+            setLikeCounts((prevCounts) => ({
+                ...prevCounts,
+                [projectId]: response.data.liked ? prevCounts[projectId] + 1 : prevCounts[projectId] - 1
+            }));
+        } catch (error) {
+            console.error(`Failed to toggle like for project ${projectId}`, error);
+        }
+    };
 
     return (
         <>
@@ -22,10 +94,23 @@ export default function Home({ auth, projects, teams }) {
                                 <h3 className="mt-6 text-lg font-semibold">プロジェクト一覧</h3>
                                 <ul className="mt-4">
                                     {projects.map(project => (
-                                        <li key={project.id} className="py-2">
+                                        <li key={project.id} className="py-2 flex items-center justify-between">
                                             <Link href={route('projects.show', project.id)} className="text-blue-500 hover:underline">
                                                 {project.project_name}
                                             </Link>
+                                            <div className="flex items-center">
+                                                {/* ✅ いいね数を表示（データ取得後のみ） */}
+                                                {likeCounts && likeCounts[project.id] !== undefined && (
+                                                    <span className="text-gray-600 mr-2">{likeCounts[project.id]} いいね</span>
+                                                )}                                                {isAuthenticated && (
+                                                    <button
+                                                        onClick={() => toggleLike(project.id)}
+                                                        className={`ml-4 px-3 py-1 text-white rounded ${likes[project.id] ? 'bg-red-500' : 'bg-gray-500'}`}
+                                                    >
+                                                        {likes[project.id] ? '❤️ いいね解除' : '🤍 いいね'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -57,10 +142,15 @@ export default function Home({ auth, projects, teams }) {
                                 <h3 className="mt-6 text-lg font-semibold">プロジェクト一覧</h3>
                                 <ul className="mt-4">
                                     {projects.map(project => (
-                                        <li key={project.id} className="py-2">
+                                        <li key={project.id} className="py-2 flex items-center justify-between">
                                             <Link href={route('projects.show', project.id)} className="text-blue-500 hover:underline">
                                                 {project.project_name}
                                             </Link>
+                                            <div className="flex items-center">
+                                                {/* ✅ いいね数を表示（データ取得後のみ） */}
+                                                {likeCounts && likeCounts[project.id] !== undefined && (
+                                                    <span className="text-gray-600 mr-2">{likeCounts[project.id]} いいね</span>
+                                                )}                                            </div>
                                         </li>
                                     ))}
                                 </ul>

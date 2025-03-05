@@ -10,6 +10,7 @@ export default function Show({ auth, team }) {
         console.log("✅ チームデータ:", team);
         console.log("✅ チームメンバー:", team.members);
         console.log("✅ 認証ユーザー:", auth.user);
+        console.log("✅ チームの関連プロジェクト:", team.projects);
     }, [team, auth]);
 
     // 🔥 ログインユーザーがリーダーか判定
@@ -67,6 +68,7 @@ export default function Show({ auth, team }) {
                                         <Link href={route('projects.show', project.id)} className="text-blue-500 hover:underline">
                                             {project.project_name}
                                         </Link>
+                                        <span className="text-gray-600">{project.likes_count ?? 0} いいね</span>
                                     </li>
                                 ))
                             ) : (
@@ -133,6 +135,22 @@ export default function Show({ auth, team }) {
                                 ))
                             ) : (
                                 <p className="text-gray-500">メンバーがいません。</p>
+                            )}
+                        </ul>
+
+                        <h3 className="text-lg font-semibold mt-6">関連プロジェクト</h3>
+                        <ul className="mt-4">
+                            {team.projects.length > 0 ? (
+                                team.projects.map(project => (
+                                    <li key={project.id} className="py-2">
+                                        <Link href={route('projects.show', project.id)} className="text-blue-500 hover:underline">
+                                            {project.project_name}
+                                        </Link>
+                                        <span className="text-gray-600">{project.likes_count ?? 0} いいね</span>
+                                    </li>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">関連するプロジェクトがありません。</p>
                             )}
                         </ul>
 

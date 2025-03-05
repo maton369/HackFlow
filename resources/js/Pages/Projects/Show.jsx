@@ -1,31 +1,63 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function Show({ auth, project }) {
     const { delete: destroy, processing } = useForm();
+
+    // ✅ いいね状態といいね数を管理
+    const [liked, setLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(project.like_count || 0);
 
     useEffect(() => {
         console.log("✅ プロジェクトデータ:", project);
         console.log("✅ チームのメンバー:", project.team?.users);
         console.log("✅ 認証ユーザー:", auth.user);
 
-        // ✅ ユーザーとその役割をデバッグ
-        if (project.team?.users) {
-            project.team.users.forEach(user => {
-                console.log(`👤 ユーザーID: ${user.id}, 役割: ${user.pivot?.role}`);
+        // ✅ いいね数は誰でも取得できるようにする
+        axios.get(`/projects/${project.id}/like-count`)
+            .then((response) => {
+                setLikeCount(response.data.count);
+            })
+            .catch((error) => {
+                console.error("Failed to fetch like count:", error);
             });
+
+        // ✅ いいね済みかどうかはログインユーザーのみ取得
+        if (auth.user) {
+            axios.get(`/projects/${project.id}/is-liked`)
+                .then((response) => {
+                    setLiked(response.data.liked);
+                })
+                .catch((error) => {
+                    console.error("Failed to fetch like status:", error);
+                });
         }
     }, [project, auth]);
 
-    // ✅ ユーザーがプロジェクトのリーダーか判定（デバッグを追加）
-    const isLeader = (project.team?.users ?? []).some(user => {
-        console.log(`🔍 チェック: ${user.id} === ${auth.user.id}, 役割: ${user.pivot?.role}`);
-        return user.id === auth.user.id && user.pivot?.role === 'owner';
-    });
+    const toggleLike = async () => {
+        if (!auth.user) {
+            alert("ログインが必要です");
+            return;
+        }
 
-    console.log("🔥 isLeader 判定:", isLeader); // ✅ ここでリーダー判定の結果を出力
+        try {
+            const response = await axios.post(`/projects/${project.id}/like`);
+            setLiked(response.data.liked);
+            setLikeCount((prevCount) => response.data.liked ? prevCount + 1 : prevCount - 1);
+        } catch (error) {
+            console.error("Failed to toggle like:", error);
+        }
+    };
+
+    // ✅ ユーザーがプロジェクトのリーダーか判定
+    const isLeader = auth.user
+        ? (project.team?.users ?? []).some(user => user.id === auth.user.id && user.pivot?.role === 'owner')
+        : false;
+
+    console.log("🔥 isLeader 判定:", isLeader);
 
     // ✅ プロジェクト削除処理
     const handleDelete = () => {
@@ -55,6 +87,17 @@ export default function Show({ auth, project }) {
                         <p className="mt-2 text-gray-700">
                             公開URL: <a href={project.live_url} className="text-blue-600 hover:underline">{project.live_url}</a>
                         </p>
+
+                        {/* ✅ いいね機能 */}
+                        <div className="mt-4 flex items-center">
+                            <span className="text-gray-600 mr-2">{likeCount} いいね</span>
+                            <button
+                                onClick={toggleLike}
+                                className={`ml-4 px-3 py-1 text-white rounded ${liked ? 'bg-red-500' : 'bg-gray-500'}`}
+                            >
+                                {liked ? '❤️ いいね解除' : '🤍 いいね'}
+                            </button>
+                        </div>
 
                         <h4 className="mt-4 font-semibold">チーム</h4>
                         {project.team ? (
@@ -144,6 +187,7 @@ export default function Show({ auth, project }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 className="text-lg font-semibold">プロジェクト詳細</h3>
                         <p className="mt-2 text-gray-700">{project.app_name}</p>
+
                         <p className="mt-2 text-gray-700">{project.project_image_url}</p>
                         <p className="mt-2 text-gray-700">
                             GitHub: <a href={project.github_url} className="text-blue-600 hover:underline">{project.github_url}</a>
@@ -151,6 +195,47 @@ export default function Show({ auth, project }) {
                         <p className="mt-2 text-gray-700">
                             公開URL: <a href={project.live_url} className="text-blue-600 hover:underline">{project.live_url}</a>
                         </p>
+
+                        <h4 className="mt-4 font-semibold">技術スタック</h4>
+                        <ul className="mt-2">
+                            {(project.tech_stacks ?? []).length > 0 ? (
+                                project.tech_stacks.map((stack) => (
+                                    <li key={stack.id}>{stack.name}</li>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">技術スタックがありません。</p>
+                            )}
+                        </ul>
+
+                        <h4 className="mt-4 font-semibold">タグ</h4>
+                        <ul className="mt-2">
+                            {(project.tags ?? []).length > 0 ? (
+                                project.tags.map((tag) => (
+                                    <li key={tag.id}>{tag.name}</li>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">タグがありません。</p>
+                            )}
+                        </ul>
+
+                        <h4 className="mt-4 font-semibold">工程一覧</h4>
+                        <ul className="mt-2">
+                            {(project.project_steps ?? []).length > 0 ? (
+                                project.project_steps.map((step) => (
+                                    <li key={step.id} className="border-b py-2">
+                                        <h4 className="font-semibold">{step.title}</h4>
+                                        <p className="text-gray-600">{step.description}</p>
+                                    </li>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">工程が登録されていません。</p>
+                            )}
+                        </ul>
+
+                        {/* ✅ いいね機能 */}
+                        <div className="mt-4 flex items-center">
+                            <span className="text-gray-600 mr-2">{likeCount} いいね</span>
+                        </div>
 
                         {/* ✅ ホームに戻るボタン */}
                         <div className="mt-6">

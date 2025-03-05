@@ -48,4 +48,9 @@ class Project extends Model
     {
         return $this->hasMany(ProjectStep::class);
     }
+
+    public function likeCount()
+    {
+        return $this->likes()->count();
+    }
 }
