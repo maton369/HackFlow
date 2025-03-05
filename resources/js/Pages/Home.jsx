@@ -126,6 +126,16 @@ export default function Home({ auth, projects, teams }) {
                                         </li>
                                     ))}
                                 </ul>
+
+                                {/* ✅ マイページ & 統計画面へのリンク */}
+                                <div className="mt-6 flex space-x-4">
+                                    <Link href={route('mypage')} className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600">
+                                        マイページへ
+                                    </Link>
+                                    <Link href={route('statistics')} className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
+                                        統計画面へ
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -176,6 +186,13 @@ export default function Home({ auth, projects, teams }) {
                                         新規登録
                                     </Link>
                                 </div>
+
+                                <div className="mt-6 flex space-x-4">
+                                    <Link href={route('statistics')} className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
+                                        統計画面へ
+                                    </Link>
+                                </div>
+
                             </div>
                         </div>
                     </div>
