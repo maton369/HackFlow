@@ -22,6 +22,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/description', function () {
+    return Inertia::render('AppDescription');
+})->name('description');
+
+
 // ✅ プロジェクトとチームの詳細はログインなしでも見れる
 Route::get('/projects/{project}', [ProjectController::class, 'show'])
     ->name('projects.show')->where(['project' => '[0-9]+']);
