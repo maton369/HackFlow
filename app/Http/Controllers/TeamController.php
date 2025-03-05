@@ -63,9 +63,16 @@ class TeamController extends Controller
      */
     public function show($id)
     {
-        $team = Team::with('members.user', 'projects')->findOrFail($id);
+        $team = Team::with([
+            'members.user',
+            'projects' => function ($query) {
+                $query->withCount('likes'); // ✅ いいね数を取得
+            }
+        ])->findOrFail($id);
+
         return Inertia::render('Teams/Show', ['team' => $team]);
     }
+
 
     /**
      * チーム編集フォームを表示

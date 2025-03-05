@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\LikeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Project;
@@ -27,6 +27,9 @@ Route::get('/projects/{project}', [ProjectController::class, 'show'])
 Route::get('/teams/{team}', [TeamController::class, 'show'])
     ->name('teams.show')->where(['team' => '[0-9]+']);
 
+Route::get('/projects/{project}/like-count', [LikeController::class, 'getLikeCount'])
+    ->name('projects.like-count')->where(['project' => '[0-9]+']);
+
 // ✅ ユーザー関連
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')->where(['user' => '[0-9]+']);
@@ -40,7 +43,6 @@ Route::middleware(['auth'])->prefix('teams')->group(function () {
     Route::get('/create', [TeamController::class, 'create'])->name('teams.create');
     Route::post('/', [TeamController::class, 'store'])->name('teams.store');
 
-    Route::get('/{team}', [TeamController::class, 'show'])->name('teams.show')->where(['team' => '[0-9]+']);
     Route::get('/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit')->where(['team' => '[0-9]+']);
     Route::patch('/{team}', [TeamController::class, 'update'])->name('teams.update')->where(['team' => '[0-9]+']);
 
@@ -80,6 +82,12 @@ Route::middleware(['auth'])->group(function () {
             ])
         ]);
     })->name('mypage');
+
+    Route::post('/projects/{project}/like', [LikeController::class, 'toggleLike'])
+        ->name('projects.like')->where(['project' => '[0-9]+']);
+
+    Route::get('/projects/{project}/is-liked', [LikeController::class, 'isLikedByUser'])
+        ->name('projects.is-liked')->where(['project' => '[0-9]+']);
 
     // ✅ プロフィール関連
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

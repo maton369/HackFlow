@@ -19,9 +19,22 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Project::with(['team', 'techStacks', 'tags'])->get();
+        $projects = Project::with(['team', 'techStacks', 'tags'])
+            ->get()
+            ->map(function ($project) {
+                return [
+                    'id' => $project->id,
+                    'project_name' => $project->project_name,
+                    'like_count' => $project->likes()->count(), // いいね数を取得
+                    'team' => $project->team,
+                    'techStacks' => $project->techStacks,
+                    'tags' => $project->tags,
+                ];
+            });
+
         return Inertia::render('Home', ['projects' => $projects]);
     }
+
 
     public function create()
     {
@@ -78,23 +91,18 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        // 🔥 team.members をロード
         $project->load([
             'team:id,team_name',
-            'team.users:id,name,email', // ✅ `users` テーブルのデータを取得
+            'team.users:id,name,email',
             'techStacks:id,name',
             'tags:id,name',
-            'projectSteps:id,project_id,title,description'
+            'projectSteps:id,project_id,title,description',
         ]);
-
 
         return Inertia::render('Projects/Show', [
-            'project' => $project
+            'project' => $project->toArray() + ['like_count' => $project->likes()->count()]
         ]);
     }
-
-
-
 
     public function edit(Project $project)
     {

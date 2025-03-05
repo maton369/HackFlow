@@ -9,10 +9,12 @@ return new class extends Migration {
     {
         Schema::create('likes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+
+            // ユーザーごとに同じプロジェクトを1回だけいいねできるようにする
+            $table->unique(['user_id', 'project_id']);
         });
     }
 
