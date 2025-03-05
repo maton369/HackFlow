@@ -43,12 +43,16 @@ class ProjectController extends Controller
         $techStacks = TechStack::all();
         $tags = Tag::all();
 
+        // 🔥 技術スタック統計データを更新（念のため最新にする）
+        TechStackStatistic::updateStatistics();
+
         return Inertia::render('Projects/Create', [
             'teams' => $userTeams,
             'techStacks' => $techStacks,
             'tags' => $tags
         ]);
     }
+
 
     public function store(Request $request)
     {
@@ -196,9 +200,13 @@ class ProjectController extends Controller
         }
         $project->tags()->sync($tagIds);
 
+        // 🔥 **技術スタック統計データを更新**
+        TechStackStatistic::updateStatistics();
+
         return Redirect::route('projects.show', $project->fresh()->id)
             ->with('success', 'プロジェクト情報を更新しました！');
     }
+
 
     public function statistics()
     {
