@@ -74,4 +74,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class, 'team_members', 'user_id', 'team_id', 'id', 'team_id')
             ->with('team');
     }
+
+    public function likedProjects()
+    {
+        return $this->belongsToMany(Project::class, 'likes', 'user_id', 'project_id')
+            ->with('team') // ✅ プロジェクトの所属チーム情報を取得
+            ->withTimestamps(); // 🔥 タイムスタンプを含める
+    }
 }
