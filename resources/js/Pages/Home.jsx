@@ -4,7 +4,9 @@ import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export default function Home({ auth, projects, teams }) {
+export default function Home({ auth, projects, teams,
+    users = []
+}) {
     const isAuthenticated = auth.user !== null;
 
     // プロジェクトごとのいいね状態といいね数を管理
@@ -15,6 +17,20 @@ export default function Home({ auth, projects, teams }) {
             return acc;
         }, {});
     });
+
+    // ✅ 検索用の state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchCategory, setSearchCategory] = useState('projects'); // 初期値はプロジェクト
+    const [filteredProjects, setFilteredProjects] = useState([]);
+    const [filteredTeams, setFilteredTeams] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+
+    useEffect(() => {
+        setFilteredProjects(projects);
+        setFilteredTeams(teams);
+        setFilteredUsers(users);
+    }, [projects, teams, users]);
+
 
     useEffect(() => {
         // ✅ いいね数をAPIから最新のデータに更新
@@ -30,7 +46,7 @@ export default function Home({ auth, projects, teams }) {
                     }
                 })
             );
-            setLikeCounts(countsData); // 更新データをセット
+            setLikeCounts(prevCounts => ({ ...prevCounts, ...countsData }));
         };
 
         fetchLikeCounts();
@@ -54,6 +70,29 @@ export default function Home({ auth, projects, teams }) {
         }
     }, [projects, isAuthenticated]);
 
+    // ✅ 検索機能
+    useEffect(() => {
+        if (searchCategory === 'projects') {
+            setFilteredProjects(
+                projects.filter(project =>
+                    project.project_name.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
+        } else if (searchCategory === 'teams') {
+            setFilteredTeams(
+                teams.filter(team =>
+                    team.team_name.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
+        } else if (searchCategory === 'users') {
+            setFilteredUsers(
+                users.filter(user =>
+                    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+            );
+        }
+    }, [searchQuery, searchCategory, projects, teams, users]);
+
     const toggleLike = async (projectId) => {
         if (!isAuthenticated) {
             alert("ログインが必要です");
@@ -70,7 +109,7 @@ export default function Home({ auth, projects, teams }) {
             // ✅ いいね数を更新
             setLikeCounts((prevCounts) => ({
                 ...prevCounts,
-                [projectId]: response.data.liked ? prevCounts[projectId] + 1 : prevCounts[projectId] - 1
+                [projectId]: response.data.liked ? (prevCounts[projectId] || 0) + 1 : Math.max((prevCounts[projectId] || 1) - 1, 0)
             }));
         } catch (error) {
             console.error(`Failed to toggle like for project ${projectId}`, error);
@@ -85,10 +124,99 @@ export default function Home({ auth, projects, teams }) {
                     header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Home</h2>}
                 >
                     <Head title="Home" />
+                    {/* ✅ 検索機能 */}
+                    <div className="max-w-7xl mx-auto mt-6 px-4">
+                        <input
+                            type="text"
+                            placeholder="名前で検索..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+
+                        {/* ✅ 検索対象を切り替えるボタン */}
+                        <div className="mt-3 flex space-x-2">
+                            <button
+                                className={`px-4 py-2 rounded ${searchCategory === 'projects' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
+                                onClick={() => setSearchCategory('projects')}
+                            >
+                                プロジェクト
+                            </button>
+                            <button
+                                className={`px-4 py-2 rounded ${searchCategory === 'teams' ? 'bg-green-500 text-white' : 'bg-gray-300'}`}
+                                onClick={() => setSearchCategory('teams')}
+                            >
+                                チーム
+                            </button>
+                            <button
+                                className={`px-4 py-2 rounded ${searchCategory === 'users' ? 'bg-purple-500 text-white' : 'bg-gray-300'}`}
+                                onClick={() => setSearchCategory('users')}
+                            >
+                                ユーザー
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="py-12">
                         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                                 <p className="text-gray-900">Welcome to HackFlow, {auth.user.name}!</p>
+
+                                {/* ✅ 検索結果のカテゴリごとに表示 */}
+                                {searchCategory === 'projects' && (
+                                    <>
+                                        <h3 className="mt-6 text-lg font-semibold">検索結果</h3>
+                                        <ul className="mt-4">
+                                            {filteredProjects.length > 0 ? (
+                                                filteredProjects.map(project => (
+                                                    <li key={project.id} className="py-2 flex items-center justify-between">
+                                                        <Link href={route('projects.show', project.id)} className="text-blue-500 hover:underline">
+                                                            {project.project_name}
+                                                        </Link>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <p className="text-gray-500 mt-2">該当するプロジェクトが見つかりません。</p>
+                                            )}
+                                        </ul>
+                                    </>
+                                )}
+
+                                {searchCategory === 'teams' && (
+                                    <>
+                                        <h3 className="mt-6 text-lg font-semibold">検索結果</h3>
+                                        <ul className="mt-4">
+                                            {filteredTeams.length > 0 ? (
+                                                filteredTeams.map(team => (
+                                                    <li key={team.id} className="py-2">
+                                                        <Link href={route('teams.show', team.id)} className="text-green-500 hover:underline">
+                                                            {team.team_name}
+                                                        </Link>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <p className="text-gray-500 mt-2">該当するチームが見つかりません。</p>
+                                            )}
+                                        </ul>
+                                    </>
+                                )}
+
+                                {searchCategory === 'users' && (
+                                    <>
+                                        <h3 className="mt-6 text-lg font-semibold">検索結果</h3>
+                                        <ul className="mt-4">
+                                            {filteredUsers.length > 0 ? (
+                                                filteredUsers.map(user => (
+                                                    <li key={user.id} className="py-2">
+                                                        <span className="text-purple-500">{user.name}</span>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <p className="text-gray-500 mt-2">該当するユーザーが見つかりません。</p>
+                                            )}
+                                        </ul>
+                                    </>
+                                )}
 
                                 {/* ✅ プロジェクト一覧 */}
                                 <h3 className="mt-6 text-lg font-semibold">プロジェクト一覧</h3>
@@ -143,6 +271,39 @@ export default function Home({ auth, projects, teams }) {
             ) : (
                 <GuestLayout>
                     <Head title="Home" />
+                    {/* ✅ 検索機能 */}
+                    <div className="max-w-7xl mx-auto mt-6 px-4">
+                        <input
+                            type="text"
+                            placeholder="名前で検索..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+
+                        {/* ✅ 検索対象を切り替えるボタン */}
+                        <div className="mt-3 flex space-x-2">
+                            <button
+                                className={`px-4 py-2 rounded ${searchCategory === 'projects' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
+                                onClick={() => setSearchCategory('projects')}
+                            >
+                                プロジェクト
+                            </button>
+                            <button
+                                className={`px-4 py-2 rounded ${searchCategory === 'teams' ? 'bg-green-500 text-white' : 'bg-gray-300'}`}
+                                onClick={() => setSearchCategory('teams')}
+                            >
+                                チーム
+                            </button>
+                            <button
+                                className={`px-4 py-2 rounded ${searchCategory === 'users' ? 'bg-purple-500 text-white' : 'bg-gray-300'}`}
+                                onClick={() => setSearchCategory('users')}
+                            >
+                                ユーザー
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="py-12">
                         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                             <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">

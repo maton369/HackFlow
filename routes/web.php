@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Team;
+use App\Models\User;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,6 +18,7 @@ Route::get('/', function () {
     return Inertia::render('Home', [
         'projects' => Project::with('team')->get(),
         'teams' => Team::all(),
+        'users' => User::select('id', 'name')->get(),
     ]);
 })->name('home');
 
