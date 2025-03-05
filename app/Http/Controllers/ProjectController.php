@@ -43,6 +43,21 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function myPage()
+    {
+        $user = Auth::user()->load([
+            'techStacks',
+            'urls',
+            'teams:id,team_name',
+            'projects:id,project_name,team_id',
+            'likedProjects:id,project_name,team_id' // ✅ いいねしたプロジェクトを取得
+        ]);
+
+        return Inertia::render('MyPage', [
+            'user' => $user
+        ]);
+    }
+
 
     public function create()
     {

@@ -80,7 +80,8 @@ Route::middleware(['auth'])->group(function () {
                 'techStacks',
                 'urls',
                 'teams:id,team_name',
-                'projects:id,project_name,team_id' // ✅ 関係するプロジェクトを追加
+                'projects:id,project_name,team_id', // ✅ 関係するプロジェクトを追加
+                'likedProjects:id,project_name,team_id'
             ])
         ]);
     })->name('mypage');
