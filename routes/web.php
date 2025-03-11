@@ -10,22 +10,31 @@ use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Like;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Auth;
 
 // ✅ ホーム画面（ログイン不要）
 Route::get('/', function () {
+    $projects = Project::with('team', 'techStacks', 'tags')
+        ->withCount('likes')
+        ->get();
+
+    $teams = Team::all();
+    $users = User::select('id', 'name')->get();
+
+    // ✅ 現在のユーザーがいいねしたプロジェクトを取得（未ログインの場合は空配列）
+    $userLikes = Auth::check()
+        ? Like::where('user_id', Auth::id())->pluck('project_id')->toArray()
+        : [];
+
     return Inertia::render('Home', [
-        'projects' => Project::with('team')->get(),
-        'teams' => Team::all(),
-        'users' => User::select('id', 'name')->get(),
+        'projects' => $projects,
+        'teams' => $teams,
+        'users' => $users,
+        'userLikes' => $userLikes,  // ✅ フロントに渡す
     ]);
 })->name('home');
-
-Route::get('/description', function () {
-    return Inertia::render('AppDescription');
-})->name('description');
-
 
 // ✅ プロジェクトとチームの詳細はログインなしでも見れる
 Route::get('/projects/{project}', [ProjectController::class, 'show'])
@@ -77,6 +86,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+    Route::get('/user/likes', [LikeController::class, 'getUserLikes'])->name('user.likes');
 
     // マイページ（チーム名を正しく取得する）
     Route::middleware(['auth'])->get('/mypage', function () {

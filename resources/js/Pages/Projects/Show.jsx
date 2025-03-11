@@ -6,9 +6,10 @@ import axios from 'axios';
 
 export default function Show({ auth, project }) {
     const { delete: destroy, processing } = useForm();
+    const isAuthenticated = auth.user !== null;
 
     // ✅ いいね状態といいね数を管理
-    const [liked, setLiked] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(project.like_count || 0);
 
     useEffect(() => {
@@ -26,34 +27,47 @@ export default function Show({ auth, project }) {
             });
 
         // ✅ いいね済みかどうかはログインユーザーのみ取得
-        if (auth.user) {
+        if (isAuthenticated) {
             axios.get(`/projects/${project.id}/is-liked`)
                 .then((response) => {
-                    setLiked(response.data.liked);
+                    setIsLiked(response.data.liked); // ✅ `setLiked` → `setIsLiked` に修正
                 })
                 .catch((error) => {
-                    console.error("Failed to fetch like status:", error);
+                    console.error("❌ いいね状態の取得に失敗:", error);
                 });
         }
-    }, [project, auth]);
+    }, [project, isAuthenticated]);
 
     const toggleLike = async () => {
-        if (!auth.user) {
+        if (!isAuthenticated) {
             alert("ログインが必要です");
             return;
         }
 
+        console.log(`👍 いいねボタンが押されました！(ID: ${project.id})`);
+
+        // ✅ UIを即時更新
+        setIsLiked((prev) => !prev);
+        setLikeCount((prev) => (!isLiked ? prev + 1 : prev - 1));
+
         try {
             const response = await axios.post(`/projects/${project.id}/like`);
-            setLiked(response.data.liked);
-            setLikeCount((prevCount) => response.data.liked ? prevCount + 1 : prevCount - 1);
+            console.log("✅ APIレスポンス:", response.data);
+
+            // ✅ APIの結果を反映（確定処理）
+            setIsLiked(response.data.liked);
+            setLikeCount((prev) => (response.data.liked ? prev : prev));
         } catch (error) {
-            console.error("Failed to toggle like:", error);
+            console.error("❌ いいねの切り替えに失敗:", error);
+
+            // ✅ エラー時には元の状態に戻す
+            setIsLiked((prev) => !prev);
+            setLikeCount((prev) => (!isLiked ? prev - 1 : prev + 1));
         }
     };
 
     // ✅ ユーザーがプロジェクトのリーダーか判定
-    const isLeader = auth.user
+    const isLeader = isAuthenticated
         ? (project.team?.users ?? []).some(user => user.id === auth.user.id && user.pivot?.role === 'owner')
         : false;
 
@@ -68,7 +82,7 @@ export default function Show({ auth, project }) {
         }
     };
 
-    return auth.user ? (
+    return isAuthenticated ? (
         <AuthenticatedLayout
             user={auth.user}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{project.project_name}</h2>}
@@ -90,13 +104,13 @@ export default function Show({ auth, project }) {
 
                         {/* ✅ いいね機能 */}
                         <div className="mt-4 flex items-center">
-                            <span className="text-gray-600 mr-2">{likeCount} いいね</span>
                             <button
                                 onClick={toggleLike}
-                                className={`ml-4 px-3 py-1 text-white rounded ${liked ? 'bg-red-500' : 'bg-gray-500'}`}
+                                className={`transition-all duration-300 transform ${isLiked ? "text-pink-500 scale-110" : "text-gray-500"}`}
                             >
-                                {liked ? '❤️ いいね解除' : '🤍 いいね'}
+                                {isLiked ? "❤️" : "🤍"}
                             </button>
+                            <span className="ml-2 text-gray-600">{likeCount}</span>
                         </div>
 
                         <h4 className="mt-4 font-semibold">チーム</h4>
