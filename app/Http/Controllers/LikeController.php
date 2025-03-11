@@ -43,4 +43,15 @@ class LikeController extends Controller
         $liked = Like::where('user_id', $user->id)->where('project_id', $projectId)->exists();
         return response()->json(['liked' => $liked]);
     }
+
+    public function getUserLikes()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['likes' => []]); // 未ログインなら空配列を返す
+        }
+
+        $likes = Like::where('user_id', $user->id)->pluck('project_id'); // ユーザーがいいねしたプロジェクトIDを取得
+        return response()->json(['likes' => $likes]);
+    }
 }
