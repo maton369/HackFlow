@@ -293,4 +293,19 @@ class ProjectController extends Controller
 
         return redirect()->route('home')->with('success', 'プロジェクトが削除されました！');
     }
+
+    public function searchByTag(Request $request)
+    {
+        $tagName = $request->query('tag');
+
+        if (!$tagName) {
+            return response()->json(Project::with(['team', 'techStacks', 'tags'])->withCount('likes')->get());
+        }
+
+        $projects = Project::whereHas('tags', function ($query) use ($tagName) {
+            $query->where('name', 'LIKE', "%{$tagName}%");
+        })->with(['team', 'techStacks', 'tags'])->withCount('likes')->get();
+
+        return response()->json($projects);
+    }
 }

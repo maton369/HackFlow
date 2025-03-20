@@ -40,6 +40,8 @@ Route::get('/', function () {
 Route::get('/projects/{project}', [ProjectController::class, 'show'])
     ->name('projects.show')->where(['project' => '[0-9]+']);
 
+Route::get('/projects/search-by-tag', [ProjectController::class, 'searchByTag'])->name('projects.searchByTag');
+
 Route::get('/teams/{team}', [TeamController::class, 'show'])
     ->name('teams.show')->where(['team' => '[0-9]+']);
 
