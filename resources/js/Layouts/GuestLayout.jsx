@@ -1,18 +1,17 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import GuestHeader from './GuestHeader';
+import Footer from '@/Pages/Components/Footer';
 
 export default function Guest({ children }) {
     return (
-        <div className="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <Link href="/">
-                    <ApplicationLogo className="w-20 h-20 fill-current text-gray-500" />
-                </Link>
-            </div>
+        <div className="min-h-screen bg-[#28A745] flex flex-col">
+            <GuestHeader />
 
-            <div className="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-                {children}
-            </div>
+            {/* ✅ コンテンツ部分（AuthenticatedLayout に合わせて統一） */}
+            <main className="flex-grow">
+                <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">{children}</div>
+            </main>
+
+            <Footer />
         </div>
     );
 }

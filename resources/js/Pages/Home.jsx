@@ -83,6 +83,20 @@ export default function Home({ auth, projects, userLikes = [] }) {
         }
     };
 
+    // ✅ テストアカウントでログイン
+    const handleTestLogin = async () => {
+        try {
+            await axios.post("/login", {
+                email: "leader@example.com",
+                password: "password",
+            });
+
+            // ✅ ログイン成功後にリロード
+            window.location.reload();
+        } catch (error) {
+            alert("ログインに失敗しました");
+        }
+    };
 
     return (
         <>
@@ -124,6 +138,16 @@ export default function Home({ auth, projects, userLikes = [] }) {
                             toggleLike={toggleLike}
                         />
                         <NavigationLinks isAuthenticated={isAuthenticated} />
+
+                        {/* ✅ テストアカウントログインボタン */}
+                        <div className="mt-6 flex justify-center">
+                            <button
+                                onClick={handleTestLogin}
+                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                            >
+                                テストアカウントでログイン
+                            </button>
+                        </div>
                     </div>
                 </GuestLayout>
             )}

@@ -47,15 +47,20 @@ export default function Statistics({ techStackCounts = [] }) {
         <Layout
             {...(auth?.user && {
                 user: auth.user,
-                header: <h2 className="font-semibold text-xl text-gray-800 leading-tight">統計ページ</h2>,
+                header: (
+                    <h2 className="font-semibold text-xl text-white leading-tight bg-[#28A745] py-4 px-6 rounded-t-lg">
+                        Tech Trends - 技術動向
+                    </h2>
+                ),
             })}
         >
-            <Head title="Statistics" />
+            <Head title="Tech Trends" />
 
-            <div className="py-12">
+            {/* ✅ 背景色を緑に変更 */}
+            <div className="py-12 bg-[#28A745] min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <h3 className="text-lg font-semibold">プロジェクトの技術スタック統計</h3>
+                        <h3 className="text-lg font-semibold">プロジェクトの技術スタック動向</h3>
 
                         {techStackCounts.length > 0 ? (
                             <div className="mt-6">
