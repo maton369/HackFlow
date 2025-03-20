@@ -14,7 +14,7 @@ export default function Register() {
         password_confirmation: '',
         bio: '',
         tech_level: '',
-        profile_image_url: '',
+        profile_image: null,
     });
 
     useEffect(() => {
@@ -22,6 +22,11 @@ export default function Register() {
             reset('password', 'password_confirmation');
         };
     }, []);
+
+    // 🔥 ファイル選択時に state にセットする関数を追加
+    const handleFileChange = (event) => {
+        setData('profile_image', event.target.files[0]); // ファイルを state に保存
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -128,17 +133,18 @@ export default function Register() {
                     <InputError message={errors.tech_level} className="mt-2" />
                 </div>
 
-                {/* 🔥 profile_image_urlフィールド追加 */}
+                {/* プロフィール画像アップロード */}
                 <div className="mt-4">
-                    <InputLabel htmlFor="profile_image_url" value="プロフィール画像URL (任意)" />
-                    <TextInput
-                        id="profile_image_url"
-                        name="profile_image_url"
-                        value={data.profile_image_url}
+                    <InputLabel htmlFor="profile_image" value="プロフィール画像" />
+                    <input
+                        id="profile_image"
+                        type="file"
+                        name="profile_image"
+                        accept="image/*"
                         className="mt-1 block w-full"
-                        onChange={(e) => setData('profile_image_url', e.target.value)}
+                        onChange={handleFileChange}
                     />
-                    <InputError message={errors.profile_image_url} className="mt-2" />
+                    <InputError message={errors.profile_image} className="mt-2" />
                 </div>
 
                 <div className="flex items-center justify-end mt-4">

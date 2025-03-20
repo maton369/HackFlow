@@ -41,6 +41,18 @@ export default function Show({ auth, team }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+
+                        {/* ✅ チーム画像を表示 */}
+                        {team.team_image_url && (
+                            <div className="mb-6 text-center">
+                                <img
+                                    src={team.team_image_url}
+                                    alt="チーム画像"
+                                    className="w-48 h-48 rounded-full mx-auto shadow-lg"
+                                />
+                            </div>
+                        )}
+
                         <h3 className="text-lg font-semibold">チームメンバー</h3>
                         <ul className="mt-4">
                             {team.members.length > 0 ? (
@@ -119,6 +131,18 @@ export default function Show({ auth, team }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+
+                        {/* ✅ チーム画像を表示 */}
+                        {team.team_image_url && (
+                            <div className="mb-6 text-center">
+                                <img
+                                    src={team.team_image_url}
+                                    alt="チーム画像"
+                                    className="w-48 h-48 rounded-full mx-auto shadow-lg"
+                                />
+                            </div>
+                        )}
+
                         <h3 className="text-lg font-semibold">チームメンバー</h3>
                         <ul className="mt-4">
                             {team.members.length > 0 ? (

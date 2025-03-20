@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use Inertia\Response;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TeamController extends Controller
 {
@@ -29,14 +30,27 @@ class TeamController extends Controller
     {
         $validated = $request->validate([
             'team_name' => 'required|string|max:255|unique:teams,team_name',
-            'team_image_url' => 'nullable|url|max:500',
-            'members' => 'array',  // メンバーリスト
-            'members.*' => 'exists:users,id'  // 有効なユーザーID
+            'team_image' => 'nullable|image', // 🔥 画像の最大サイズを指定
+            'members' => 'array',
+            'members.*' => 'exists:users,id'
         ]);
 
+        // 🔥 画像アップロード処理
+        $imageUrl = null;
+        if ($request->hasFile('team_image')) {
+            $imageUrl = Cloudinary::upload($request->file('team_image')->getRealPath())->getSecurePath();
+        }
+
+        // 🔥 `members` が空ならオーナーのみ追加
+        $members = $request->input('members', []);
+        if (empty($members)) {
+            $members = [Auth::id()];
+        }
+
+        // 🔥 チームを作成
         $team = Team::create([
             'team_name' => $validated['team_name'],
-            'team_image_url' => $validated['team_image_url'] ?? '',
+            'team_image_url' => $imageUrl, // 🔥 画像がなければ `null` になる
         ]);
 
         // 🔥 オーナー登録
@@ -46,17 +60,20 @@ class TeamController extends Controller
             'role' => 'owner',
         ]);
 
-        // 🔥 選択したメンバーを追加
-        foreach ($validated['members'] as $userId) {
-            TeamMember::create([
-                'team_id' => $team->id,
-                'user_id' => $userId,
-                'role' => 'member',
-            ]);
+        // 🔥 メンバー追加（オーナー以外のみ）
+        foreach ($members as $userId) {
+            if ($userId != Auth::id()) { // オーナーを再登録しない
+                TeamMember::create([
+                    'team_id' => $team->id,
+                    'user_id' => $userId,
+                    'role' => 'member',
+                ]);
+            }
         }
 
-        return Redirect::route('teams.show', $team->id)->with('success', 'チームが作成されました！');
+        return Redirect::route('mypage')->with('success', 'チームが作成されました！');
     }
+
 
     /**
      * チーム詳細を表示
@@ -109,14 +126,24 @@ class TeamController extends Controller
 
         $validated = $request->validate([
             'team_name' => 'required|string|max:255|unique:teams,team_name,' . $team->id,
-            'team_image_url' => 'nullable|url|max:500',
+            'team_image' => 'nullable|image|max:2048', // 🔥 画像ファイルを受け付ける
             'members' => 'array',
             'members.*' => 'exists:users,id',
         ]);
 
+        // 🔥 画像アップロード処理
+        if ($request->hasFile('team_image')) {
+            // 既存の画像を削除（任意）
+            if ($team->team_image_url) {
+                Cloudinary::destroy($team->team_image_url);
+            }
+
+            // 新しい画像をアップロード
+            $team->team_image_url = Cloudinary::upload($request->file('team_image')->getRealPath())->getSecurePath();
+        }
+
         $team->update([
             'team_name' => $validated['team_name'],
-            'team_image_url' => $validated['team_image_url'] ?? '',
         ]);
 
         // メンバー更新
@@ -133,6 +160,7 @@ class TeamController extends Controller
 
         return Redirect::route('teams.show', $team->id)->with('success', 'チームが更新されました！');
     }
+
 
     public function destroy($id)
     {
