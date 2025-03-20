@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary; // Cloudinary を追加
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class RegisteredUserController extends Controller
 {

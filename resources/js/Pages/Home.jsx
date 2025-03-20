@@ -2,13 +2,17 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AuthenticatedLayout from "../Layouts/AuthenticatedLayout";
 import GuestLayout from "../Layouts/GuestLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import SearchBar from "./SearchBar";
 import ProjectList from "./ProjectList";
 import NavigationLinks from "./NavigationLinks";
 
 export default function Home({ auth, projects, userLikes = [] }) {
     const isAuthenticated = auth.user !== null;
+
+    const [filteredProjects, setFilteredProjects] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchCategory, setSearchCategory] = useState("projects");
 
     // ✅ いいね機能の `useState`
     const [likes, setLikes] = useState(() =>
@@ -17,6 +21,26 @@ export default function Home({ auth, projects, userLikes = [] }) {
             return acc;
         }, {})
     );
+
+    // 🔍 タグでプロジェクトを検索する
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setFilteredProjects([]);
+            return;
+        }
+
+        axios.get(`/projects/search-by-tag?tag=${searchQuery}`)
+            .then(response => {
+                console.log("✅ 検索結果:", response.data); // 🔍 レスポンスの確認
+                setFilteredProjects(response.data);
+            })
+            .catch(error => {
+                console.error("❌ 検索エラー:", error);
+            });
+
+    }, [searchQuery]);
+
+
 
     const [likeCounts, setLikeCounts] = useState(() =>
         projects.reduce((acc, project) => {
@@ -104,11 +128,31 @@ export default function Home({ auth, projects, userLikes = [] }) {
                 <AuthenticatedLayout user={auth.user}>
                     <Head title="Home" />
                     <SearchBar
-                        searchQuery=""
-                        setSearchQuery={() => { }}
-                        searchCategory="projects"
-                        setSearchCategory={() => { }}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        searchCategory={searchCategory}
+                        setSearchCategory={setSearchCategory}
                     />
+
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12">
+                        <h3 className="text-lg font-semibold">検索結果</h3>
+
+                        {/* 🔥 プロジェクト一覧（検索結果） */}
+                        {filteredProjects.length > 0 ? (
+                            <ul className="mt-4 bg-white shadow-md rounded-lg p-4">
+                                {filteredProjects.map((project) => (
+                                    <li key={project.id} className="border-b last:border-b-0 p-2">
+                                        <Link href={`/projects/${project.id}`} className="text-blue-500 hover:underline">
+                                            {project.project_name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-gray-500 mt-4">検索結果がありません</p>
+                        )}
+                    </div>
+
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12">
                         <h3 className="text-lg font-semibold">プロジェクト一覧</h3>
                         <ProjectList
@@ -124,11 +168,32 @@ export default function Home({ auth, projects, userLikes = [] }) {
                 <GuestLayout>
                     <Head title="Home" />
                     <SearchBar
-                        searchQuery=""
-                        setSearchQuery={() => { }}
-                        searchCategory="projects"
-                        setSearchCategory={() => { }}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        searchCategory={searchCategory}
+                        setSearchCategory={setSearchCategory}
                     />
+
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12">
+                        <h3 className="text-lg font-semibold">検索結果</h3>
+
+                        {/* 🔥 プロジェクト一覧（検索結果） */}
+                        {filteredProjects.length > 0 ? (
+                            <ul className="mt-4 bg-white shadow-md rounded-lg p-4">
+                                {filteredProjects.map((project) => (
+                                    <li key={project.id} className="border-b last:border-b-0 p-2">
+                                        <Link href={`/projects/${project.id}`} className="text-blue-500 hover:underline">
+                                            {project.project_name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-gray-500 mt-4">検索結果がありません</p>
+                        )}
+
+                    </div>
+
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12">
                         <h3 className="text-lg font-semibold">プロジェクト一覧</h3>
                         <ProjectList
