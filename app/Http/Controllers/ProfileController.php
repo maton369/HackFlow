@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\User;
@@ -44,60 +46,51 @@ class ProfileController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        // 🔥 ユーザー情報の更新
-        $user->fill([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'bio' => $validated['bio'] ?? '',
-            'tech_level' => $validated['tech_level'] ?? '',
-            'profile_image_url' => $validated['profile_image_url'] ?? '',
+        // 🔥 デバッグ用ログ
+        Log::info("📷 プロフィール画像の更新リクエスト", [
+            'hasFile' => $request->hasFile('profile_image'),
+            'file_info' => $request->file('profile_image') ? $request->file('profile_image')->getClientOriginalName() : null
         ]);
 
-        // 🔥 パスワードの更新（空白の場合は無視）
-        if (!empty($validated['password'])) {
-            $user->password = bcrypt($validated['password']);
+        // 🔥 画像がアップロードされた場合のみ Cloudinary にアップロード
+        if ($request->hasFile('profile_image')) {
+            try {
+                // 既存の画像を削除（必要なら）
+                if ($user->profile_image_url) {
+                    Log::info("🔥 既存の画像を削除: " . $user->profile_image_url);
+                    Cloudinary::destroy($user->profile_image_url);
+                }
+
+                // Cloudinary に画像をアップロード
+                $uploadResponse = Cloudinary::upload($request->file('profile_image')->getRealPath());
+
+                // デバッグ用: Cloudinary のレスポンスを確認
+                Log::info("✅ Cloudinary アップロード成功", [
+                    'secure_url' => $uploadResponse->getSecurePath(),
+                    'public_id' => $uploadResponse->getPublicId()
+                ]);
+
+                // URL を取得してプロパティに設定
+                $validated['profile_image_url'] = $uploadResponse->getSecurePath();
+            } catch (\Exception $e) {
+                Log::error("❌ Cloudinary アップロードエラー", ['error' => $e->getMessage()]);
+                return Redirect::route('profile.edit')->with('error', '画像のアップロードに失敗しました。');
+            }
         }
 
-        // 🔥 メールアドレス変更時は認証解除
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
+        // 🔥 ユーザー情報の更新
+        $user->fill([
+            'name' => $validated['name'] ?? $user->name,
+            'email' => $validated['email'] ?? $user->email,
+            'bio' => array_key_exists('bio', $validated) ? $validated['bio'] : $user->bio,
+            'tech_level' => array_key_exists('tech_level', $validated) ? $validated['tech_level'] : $user->tech_level,
+            'profile_image_url' => $validated['profile_image_url'] ?? $user->profile_image_url, // 🔥 画像URLを更新
+        ]);
 
         $user->save();
 
-        // 🔥 技術スタックの更新
-        if (isset($validated['tech_stacks'])) {
-            $techStackIds = [];
-            foreach ($validated['tech_stacks'] as $techName) {
-                if (!empty($techName)) {
-                    $techStack = TechStack::firstOrCreate(['name' => $techName]);
-                    $techStackIds[] = $techStack->id;
-                }
-            }
-            $user->techStacks()->sync($techStackIds);
-        }
-
-        // 🔥 関連URLの更新
-        if (isset($validated['urls'])) {
-            // 既存の関連URLを削除
-            $user->urls()->delete();
-
-            // 新しい関連URLを追加
-            foreach ($validated['urls'] as $urlData) {
-                if (!empty($urlData['url']) && !empty($urlData['url_type'])) {
-                    UserUrl::create([
-                        'user_id' => $user->id,
-                        'url' => $urlData['url'],
-                        'url_type' => $urlData['url_type'],
-                    ]);
-                }
-            }
-        }
-
-        // 🔥 編集完了後にマイページへリダイレクト
-        return Redirect::route('mypage')->with('success', 'プロフィールが更新されました！');
+        return Redirect::route('mypage')->with('success', '✅ プロフィールが更新されました！');
     }
-
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([

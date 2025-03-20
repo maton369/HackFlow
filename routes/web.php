@@ -60,7 +60,7 @@ Route::middleware(['auth'])->prefix('teams')->group(function () {
     Route::post('/', [TeamController::class, 'store'])->name('teams.store');
 
     Route::get('/{team}/edit', [TeamController::class, 'edit'])->name('teams.edit')->where(['team' => '[0-9]+']);
-    Route::patch('/{team}', [TeamController::class, 'update'])->name('teams.update')->where(['team' => '[0-9]+']);
+    Route::match(['patch', 'post'], '/{team}', [TeamController::class, 'update'])->name('teams.update')->where(['team' => '[0-9]+']);
 
     Route::delete('/{team}', [TeamController::class, 'destroy'])->name('teams.destroy')->where(['team' => '[0-9]+']);
 });
@@ -110,7 +110,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ✅ プロフィール関連
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::match(['patch', 'post'], '/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

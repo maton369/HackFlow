@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function Edit({ auth, user }) {
     const { data, setData, patch, processing, errors, reset } = useForm({
@@ -14,7 +15,8 @@ export default function Edit({ auth, user }) {
         password_confirmation: '',
         bio: user.bio || '',
         tech_level: user.tech_level || '',
-        profile_image_url: user.profile_image_url || '',
+        profile_image: null,
+        profile_image_url: user.profile_image_url || '', // 🔥 既存の画像URLを保持
         tech_stacks: user.tech_stacks.map(stack => stack.name) ?? [],
         urls: user.urls ?? [],
     });
@@ -25,23 +27,59 @@ export default function Edit({ auth, user }) {
         };
     }, []);
 
-    const submit = (e) => {
-        e.preventDefault();
-        patch(route('profile.update'), {
-            data: {
-                ...data,
-                tech_stacks: data.tech_stacks.filter(stack => stack.trim() !== ""), // 🔥 空白の値を削除
-            },
-            preserveScroll: true,
-            onSuccess: () => {
-                alert('✅ プロフィールが更新されました！');
-                Inertia.visit(route('mypage'));
-            },
-            onError: (errors) => console.error("❌ 更新エラー:", errors),
-        });
+    // 🔥 画像選択時の処理
+    const handleFileChange = (e) => {
+        setData('profile_image', e.target.files[0]);
     };
 
+    const submit = async (e) => {
+        e.preventDefault();
 
+        const formData = new FormData();
+
+        if (data.name !== user.name) {
+            formData.append('name', data.name);
+        }
+
+        if (data.email !== user.email) {
+            formData.append('email', data.email);
+        }
+
+        if (data.bio !== user.bio) {
+            formData.append('bio', data.bio);
+        }
+
+        if (data.tech_level !== user.tech_level) {
+            formData.append('tech_level', data.tech_level);
+        }
+
+        if (data.profile_image) {
+            formData.append('profile_image', data.profile_image);
+        }
+
+        if (data.tech_stacks.length > 0) {
+            data.tech_stacks.forEach(stack => formData.append('tech_stacks[]', stack));
+        }
+
+        // 🔥 デバッグ用ログ
+        console.log("🚀 送信する FormData:");
+        for (let [key, value] of formData.entries()) {
+            console.log(`🔍 ${key}:`, value);
+        }
+
+        try {
+            await axios.post(route('profile.update'), formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            alert('✅ プロフィールが更新されました！');
+            window.location.href = route('mypage');
+        } catch (error) {
+            console.error("❌ 更新エラー:", error.response?.data || error.message);
+        }
+    };
 
     // ✅ 関連URLの追加・削除
     const addUrl = () => {
@@ -127,20 +165,27 @@ export default function Edit({ auth, user }) {
                                 <InputError message={errors.bio} className="mt-2" />
                             </div>
 
-                            {/* 🔥 プロフィール画像URL */}
+                            {/* 🔥 プロフィール画像アップロード */}
                             <div className="mt-4">
-                                <InputLabel htmlFor="profile_image_url" value="プロフィール画像URL" />
-                                <TextInput
-                                    id="profile_image_url"
-                                    type="url"
-                                    name="profile_image_url"
-                                    value={data.profile_image_url}
+                                <InputLabel htmlFor="profile_image" value="プロフィール画像" />
+                                <input
+                                    id="profile_image"
+                                    type="file"
+                                    name="profile_image"
+                                    accept="image/*"
                                     className="mt-1 block w-full"
-                                    autoComplete="url"
-                                    onChange={(e) => setData('profile_image_url', e.target.value)}
+                                    onChange={handleFileChange} // 🔥 画像を選択
                                 />
-                                <InputError message={errors.profile_image_url} className="mt-2" />
+                                <InputError message={errors.profile_image} className="mt-2" />
                             </div>
+
+                            {/* 🔥 画像プレビュー */}
+                            {data.profile_image_url && (
+                                <div className="mt-4">
+                                    <p>現在のプロフィール画像:</p>
+                                    <img src={data.profile_image_url} alt="プロフィール画像" className="w-32 h-32 rounded-full" />
+                                </div>
+                            )}
 
                             {/* 🔥 技術レベル */}
                             <div className="mt-4">

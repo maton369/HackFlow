@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\User;
@@ -82,7 +83,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'project_name' => 'required|string|max:255',
             'app_name' => 'nullable|string|max:255',
-            'project_image_url' => 'nullable|url|max:500',
+            'project_image' => 'nullable|image',
             'github_url' => 'nullable|url|max:500',
             'live_url' => 'nullable|url|max:500',
             'team_id' => 'required|exists:teams,id',
@@ -90,10 +91,15 @@ class ProjectController extends Controller
             'tag_ids' => 'array',
         ]);
 
+        $imageUrl = null;
+        if ($request->hasFile('project_image')) {
+            $imageUrl = Cloudinary::upload($request->file('project_image')->getRealPath())->getSecurePath();
+        }
+
         $project = Project::create([
             'project_name' => $validated['project_name'],
             'app_name' => $validated['app_name'] ?? '',
-            'project_image_url' => $validated['project_image_url'] ?? '',
+            'project_image_url' => $imageUrl ?? '',
             'github_url' => $validated['github_url'] ?? '',
             'live_url' => $validated['live_url'] ?? '',
             'team_id' => $validated['team_id'],
@@ -169,6 +175,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'project_name' => 'required|string|max:255',
             'app_name' => 'nullable|string|max:255',
+            'project_image' => 'nullable|image',
             'github_url' => 'nullable|url|max:500',
             'live_url' => 'nullable|url|max:500',
             'tech_stacks' => 'array',
@@ -178,6 +185,16 @@ class ProjectController extends Controller
             'tags.*.id' => 'nullable|integer|exists:tags,id',
             'tags.*.name' => 'nullable|string|max:255',
         ]);
+
+        if ($request->hasFile('project_image')) {
+            // 既存の画像を削除（任意）
+            if ($project->project_image_url) {
+                Cloudinary::destroy($project->project_image_url);
+            }
+
+            // 新しい画像をアップロード
+            $project->project_image_url = Cloudinary::upload($request->file('project_image')->getRealPath())->getSecurePath();
+        }
 
         // 🔥 プロジェクト情報更新
         $project->update([
@@ -256,6 +273,11 @@ class ProjectController extends Controller
         }
 
         DB::transaction(function () use ($project) {
+
+            if ($project->project_image_url) {
+                Cloudinary::destroy($project->project_image_url);
+            }
+
             // 🔥 関連データの削除
             $project->projectSteps()->delete(); // ✅ 正しいメソッド名を使用
             $project->techStacks()->detach(); // ✅ メソッド名を統一（camelCase）

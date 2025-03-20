@@ -7,17 +7,23 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
+import { usePage } from '@inertiajs/react';
 
 export default function Create({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
         team_name: '',
         team_image_url: '',
-        members: [],  // 🔥 メンバーを追加
+        team_image: null,
+        members: [],
     });
+
+    const { props } = usePage();
+    const router = props.router;
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [selectedMembers, setSelectedMembers] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     // 🔍 ユーザー検索
     const searchUsers = async (query) => {
@@ -45,10 +51,40 @@ export default function Create({ auth }) {
         setData('members', updatedMembers.map(user => user.id));
     };
 
-    const submit = (e) => {
+    // 🔥 画像選択時の処理
+    const handleFileChange = (e) => {
+        setData('team_image', e.target.files[0]);
+    };
+
+    const submit = async (e) => {
         e.preventDefault();
-        console.log("送信データ:", data);
-        post(route('teams.store'));
+        setIsLoading(true);
+
+        const formData = new FormData();
+
+        formData.append('team_name', data.team_name);
+
+        if (data.team_image) {
+            formData.append('team_image', data.team_image);
+        }
+
+        data.members.forEach(member => formData.append('members[]', member));
+
+        try {
+            await axios.post(route('teams.store'), formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            alert('✅ チームが作成されました！');
+
+            window.location.href = route('mypage');
+        } catch (error) {
+            console.error("❌ 作成エラー:", error.response?.data || error.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -61,6 +97,13 @@ export default function Create({ auth }) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white shadow-sm sm:rounded-lg p-6">
+                        {/* ✅ ローディングスピナー */}
+                        {isLoading && (
+                            <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-80">
+                                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-600"></div>
+                            </div>
+                        )}
+
                         <form onSubmit={submit}>
                             <div>
                                 <InputLabel htmlFor="team_name" value="チーム名" />
@@ -72,6 +115,19 @@ export default function Create({ auth }) {
                                     required
                                 />
                                 <InputError message={errors.team_name} className="mt-2" />
+                            </div>
+
+                            <div className="mt-4">
+                                <InputLabel htmlFor="team_image" value="チーム画像" />
+                                <input
+                                    id="team_image"
+                                    type="file"
+                                    name="team_image"
+                                    accept="image/*"
+                                    className="mt-1 block w-full"
+                                    onChange={handleFileChange}
+                                />
+                                <InputError message={errors.team_image} className="mt-2" />
                             </div>
 
                             <div className="mt-4">
@@ -134,7 +190,9 @@ export default function Create({ auth }) {
                             </div>
 
                             <div className="flex items-center justify-end mt-4">
-                                <PrimaryButton disabled={processing}>チーム作成</PrimaryButton>
+                                <PrimaryButton disabled={isLoading || processing}>
+                                    {isLoading ? "作成中..." : "チーム作成"}
+                                </PrimaryButton>
                             </div>
                         </form>
                     </div>

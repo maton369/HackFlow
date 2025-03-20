@@ -93,7 +93,16 @@ export default function Show({ auth, project }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-[#2c2c2c] bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 className="text-lg text-gray-300">{project.app_name}</h3>
-                        <p className="mt-2 text-gray-700">{project.project_image_url}</p>
+
+                        {/* ✅ プロジェクト画像を表示 */}
+                        {project.project_image_url ? (
+                            <img src={project.project_image_url} alt="プロジェクト画像" className="mt-4 w-full max-w-lg mx-auto rounded-lg shadow-md" />
+                        ) : (
+                            <div className="mt-4 w-full max-w-lg mx-auto rounded-lg bg-gray-300 p-12 text-center text-gray-500">
+                                画像なし
+                            </div>
+                        )}
+
                         <p className="mt-2 text-gray-700">
                             GitHub: <a href={project.github_url} className="text-blue-600 hover:underline">{project.github_url}</a>
                         </p>
@@ -199,9 +208,17 @@ export default function Show({ auth, project }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 className="text-lg font-semibold">プロジェクト詳細</h3>
-                        <p className="mt-2 text-gray-700">{project.app_name}</p>
 
-                        <p className="mt-2 text-gray-700">{project.project_image_url}</p>
+                        {/* ✅ プロジェクト画像を表示 */}
+                        {project.project_image_url ? (
+                            <img src={project.project_image_url} alt="プロジェクト画像" className="mt-4 w-full max-w-lg mx-auto rounded-lg shadow-md" />
+                        ) : (
+                            <div className="mt-4 w-full max-w-lg mx-auto rounded-lg bg-gray-300 p-12 text-center text-gray-500">
+                                画像なし
+                            </div>
+                        )}
+
+                        <p className="mt-2 text-gray-700">{project.app_name}</p>
                         <p className="mt-2 text-gray-700">
                             GitHub: <a href={project.github_url} className="text-blue-600 hover:underline">{project.github_url}</a>
                         </p>
