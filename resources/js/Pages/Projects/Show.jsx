@@ -92,108 +92,144 @@ export default function Show({ auth, project }) {
             <div className="py-12 bg-[#1e1e1e] min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-[#2c2c2c] bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <h3 className="text-lg text-gray-300">{project.app_name}</h3>
 
-                        {/* ✅ プロジェクト画像を表示 */}
                         {project.project_image_url ? (
-                            <img src={project.project_image_url} alt="プロジェクト画像" className="mt-4 w-full max-w-lg mx-auto rounded-lg shadow-md" />
+                            <img
+                                src={project.project_image_url}
+                                alt="プロジェクト画像"
+                                className="mt-4 w-full max-w-md mx-auto rounded-xl shadow-lg object-cover"
+                            />
                         ) : (
-                            <div className="mt-4 w-full max-w-lg mx-auto rounded-lg bg-gray-300 p-12 text-center text-gray-500">
-                                画像なし
+                            <div className="mt-4 w-full max-w-md mx-auto h-48 bg-gray-200 flex items-center justify-center rounded-xl text-gray-500">
+                                No Image
                             </div>
                         )}
 
-                        <p className="mt-2 text-gray-700">
-                            GitHub: <a href={project.github_url} className="text-blue-600 hover:underline">{project.github_url}</a>
-                        </p>
-                        <p className="mt-2 text-gray-700">
-                            公開URL: <a href={project.live_url} className="text-blue-600 hover:underline">{project.live_url}</a>
-                        </p>
+                        <div className="mt-6 space-y-2 text-black">
+                            <p>📛 アプリ名: <span className="font-semibold">{project.app_name || "未設定"}</span></p>
+                            <p>
+                                🔗 GitHub:{" "}
+                                {project.github_url ? (
+                                    <a href={project.github_url} className="text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer">
+                                        {project.github_url}
+                                    </a>
+                                ) : "未登録"}
+                            </p>
+                            <p>
+                                🌍 公開URL:{" "}
+                                {project.live_url ? (
+                                    <a href={project.live_url} className="text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer">
+                                        {project.live_url}
+                                    </a>
+                                ) : "未登録"}
+                            </p>
+                        </div>
 
-                        {/* ✅ いいね機能 */}
-                        <div className="mt-4 flex items-center">
+
+                        <div className="mt-6 flex items-center space-x-3">
                             <button
                                 onClick={toggleLike}
-                                className={`transition-all duration-300 transform ${isLiked ? "text-pink-500 scale-110" : "text-gray-500"}`}
+                                className={`text-2xl transition transform ${isLiked ? "text-pink-500 scale-110" : "text-gray-400"}`}
+                                title="いいね"
                             >
                                 {isLiked ? "❤️" : "🤍"}
                             </button>
-                            <span className="ml-2 text-gray-600">{likeCount}</span>
+                            <span className="text-black font-semibold">{likeCount}</span>
                         </div>
 
-                        <h4 className="mt-4 font-semibold">チーム</h4>
-                        {project.team ? (
-                            <p className="mt-2">
-                                <Link href={route('teams.show', project.team.id)} className="text-blue-500 hover:underline">
+                        <div className="mt-8">
+                            <h4 className="text-lg font-bold text-black mb-2">👥 チーム</h4>
+                            {project.team ? (
+                                <Link href={route('teams.show', project.team.id)} className="text-blue-400 hover:underline">
                                     {project.team.team_name}
                                 </Link>
-                            </p>
-                        ) : (
-                            <p className="text-gray-500">チームなし</p>
-                        )}
-
-                        <h4 className="mt-4 font-semibold">技術スタック</h4>
-                        <ul className="mt-2">
-                            {(project.tech_stacks ?? []).length > 0 ? (
-                                project.tech_stacks.map((stack) => (
-                                    <li key={stack.id}>{stack.name}</li>
-                                ))
                             ) : (
-                                <p className="text-gray-500">技術スタックがありません。</p>
+                                <p className="text-gray-400">チーム未所属</p>
                             )}
-                        </ul>
+                        </div>
 
-                        <h4 className="mt-4 font-semibold">タグ</h4>
-                        <ul className="mt-2">
-                            {(project.tags ?? []).length > 0 ? (
-                                project.tags.map((tag) => (
-                                    <li key={tag.id}>{tag.name}</li>
-                                ))
-                            ) : (
-                                <p className="text-gray-500">タグがありません。</p>
-                            )}
-                        </ul>
-
-                        <h4 className="mt-4 font-semibold">工程一覧</h4>
-                        <ul className="mt-2">
-                            {(project.project_steps ?? []).length > 0 ? (
-                                project.project_steps.map((step) => (
-                                    <li key={step.id} className="border-b py-2">
-                                        <h4 className="font-semibold">{step.title}</h4>
-                                        <p className="text-gray-600">{step.description}</p>
-                                    </li>
-                                ))
-                            ) : (
-                                <p className="text-gray-500">工程が登録されていません。</p>
-                            )}
-                        </ul>
-
-                        {/* ✅ チームメンバーのみ編集ボタンを表示 */}
-                        {(project.team?.users ?? []).some(user => user.id === auth.user.id) && (
-                            <div className="mt-6 space-x-2">
-                                <Link
-                                    href={route('projects.edit', project.id)}
-                                    className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                                >
-                                    編集
-                                </Link>
-                                {/* ✅ リーダーのみ削除ボタンを表示 */}
-                                {isLeader && (
-                                    <button
-                                        onClick={handleDelete}
-                                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                                        disabled={processing}
-                                    >
-                                        削除
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        {/* ✅ ホームに戻るボタン */}
                         <div className="mt-6">
-                            <Link href={route('home')} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                                ホームへ戻る
+                            <h4 className="text-lg font-bold text-black mb-2">🛠 技術スタック</h4>
+                            {(project.tech_stacks ?? []).length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {project.tech_stacks.map(stack => (
+                                        <span key={stack.id} className="bg-blue-300 text-blue-900 px-3 py-1 rounded-full text-sm shadow">
+                                            {stack.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-400">未登録</p>
+                            )}
+                        </div>
+
+                        <div className="mt-6">
+                            <h4 className="text-lg font-bold text-black mb-2">🏷 タグ</h4>
+                            {(project.tags ?? []).length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {project.tags.map(tag => (
+                                        <span key={tag.id} className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm shadow">
+                                            {tag.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-400">未登録</p>
+                            )}
+                        </div>
+
+
+                        <div className="mt-8">
+                            <h4 className="text-lg font-bold text-black mb-4">🗂 工程一覧</h4>
+                            {(project.project_steps ?? []).length > 0 ? (
+                                <div className="space-y-6 relative">
+                                    {project.project_steps.map((step, index) => (
+                                        <div key={step.id} className="relative">
+                                            {/* ステップ表示 */}
+                                            <div className="bg-gray-800 p-4 rounded-lg shadow text-white">
+                                                <h5 className="font-semibold text-lg">{step.title}</h5>
+                                                <p className="mt-2 text-sm text-gray-200">{step.description}</p>
+                                            </div>
+
+                                            {/* ↓ 矢印の表示（最後の工程以外） */}
+                                            {index !== project.project_steps.length - 1 && (
+                                                <div className="flex justify-center my-2 text-black text-xl">
+                                                    ↓
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-white">工程が登録されていません。</p>
+                            )}
+                        </div>
+
+                        <div className="mt-8 flex flex-wrap gap-4">
+                            {(project.team?.users ?? []).some(user => user.id === auth.user.id) && (
+                                <>
+                                    <Link
+                                        href={route('projects.edit', project.id)}
+                                        className="bg-yellow-400 text-black px-4 py-2 rounded shadow hover:bg-yellow-500 transition"
+                                    >
+                                        ✏️ 編集
+                                    </Link>
+                                    {isLeader && (
+                                        <button
+                                            onClick={handleDelete}
+                                            className="bg-red-500 text-black px-4 py-2 rounded shadow hover:bg-red-600 transition"
+                                            disabled={processing}
+                                        >
+                                            🗑️ 削除
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                            <Link
+                                href={route('home')}
+                                className="bg-blue-500 text-black px-4 py-2 rounded shadow hover:bg-blue-600 transition"
+                            >
+                                🏠 ホームへ戻る
                             </Link>
                         </div>
                     </div>
@@ -209,68 +245,120 @@ export default function Show({ auth, project }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 className="text-lg font-semibold">プロジェクト詳細</h3>
 
-                        {/* ✅ プロジェクト画像を表示 */}
                         {project.project_image_url ? (
-                            <img src={project.project_image_url} alt="プロジェクト画像" className="mt-4 w-full max-w-lg mx-auto rounded-lg shadow-md" />
+                            <img
+                                src={project.project_image_url}
+                                alt="プロジェクト画像"
+                                className="mt-4 w-full max-w-md mx-auto rounded-xl shadow-lg object-cover"
+                            />
                         ) : (
-                            <div className="mt-4 w-full max-w-lg mx-auto rounded-lg bg-gray-300 p-12 text-center text-gray-500">
-                                画像なし
+                            <div className="mt-4 w-full max-w-md mx-auto h-48 bg-gray-200 flex items-center justify-center rounded-xl text-gray-500">
+                                No Image
                             </div>
                         )}
 
-                        <p className="mt-2 text-gray-700">{project.app_name}</p>
-                        <p className="mt-2 text-gray-700">
-                            GitHub: <a href={project.github_url} className="text-blue-600 hover:underline">{project.github_url}</a>
-                        </p>
-                        <p className="mt-2 text-gray-700">
-                            公開URL: <a href={project.live_url} className="text-blue-600 hover:underline">{project.live_url}</a>
-                        </p>
-
-                        <h4 className="mt-4 font-semibold">技術スタック</h4>
-                        <ul className="mt-2">
-                            {(project.tech_stacks ?? []).length > 0 ? (
-                                project.tech_stacks.map((stack) => (
-                                    <li key={stack.id}>{stack.name}</li>
-                                ))
-                            ) : (
-                                <p className="text-gray-500">技術スタックがありません。</p>
-                            )}
-                        </ul>
-
-                        <h4 className="mt-4 font-semibold">タグ</h4>
-                        <ul className="mt-2">
-                            {(project.tags ?? []).length > 0 ? (
-                                project.tags.map((tag) => (
-                                    <li key={tag.id}>{tag.name}</li>
-                                ))
-                            ) : (
-                                <p className="text-gray-500">タグがありません。</p>
-                            )}
-                        </ul>
-
-                        <h4 className="mt-4 font-semibold">工程一覧</h4>
-                        <ul className="mt-2">
-                            {(project.project_steps ?? []).length > 0 ? (
-                                project.project_steps.map((step) => (
-                                    <li key={step.id} className="border-b py-2">
-                                        <h4 className="font-semibold">{step.title}</h4>
-                                        <p className="text-gray-600">{step.description}</p>
-                                    </li>
-                                ))
-                            ) : (
-                                <p className="text-gray-500">工程が登録されていません。</p>
-                            )}
-                        </ul>
+                        <div className="mt-6 space-y-2 text-black">
+                            <p>📛 アプリ名: <span className="font-semibold">{project.app_name || "未設定"}</span></p>
+                            <p>
+                                🔗 GitHub:{" "}
+                                {project.github_url ? (
+                                    <a href={project.github_url} className="text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer">
+                                        {project.github_url}
+                                    </a>
+                                ) : "未登録"}
+                            </p>
+                            <p>
+                                🌍 公開URL:{" "}
+                                {project.live_url ? (
+                                    <a href={project.live_url} className="text-blue-300 hover:underline" target="_blank" rel="noopener noreferrer">
+                                        {project.live_url}
+                                    </a>
+                                ) : "未登録"}
+                            </p>
+                        </div>
 
                         {/* ✅ いいね機能 */}
                         <div className="mt-4 flex items-center">
                             <span className="text-gray-600 mr-2">{likeCount} いいね</span>
                         </div>
 
-                        {/* ✅ ホームに戻るボタン */}
+
+                        <div className="mt-8">
+                            <h4 className="text-lg font-bold text-black mb-2">👥 チーム</h4>
+                            {project.team ? (
+                                <Link href={route('teams.show', project.team.id)} className="text-blue-400 hover:underline">
+                                    {project.team.team_name}
+                                </Link>
+                            ) : (
+                                <p className="text-gray-400">チーム未所属</p>
+                            )}
+                        </div>
+
                         <div className="mt-6">
-                            <Link href={route('home')} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                                ホームへ戻る
+                            <h4 className="text-lg font-bold text-black mb-2">🛠 技術スタック</h4>
+                            {(project.tech_stacks ?? []).length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {project.tech_stacks.map(stack => (
+                                        <span key={stack.id} className="bg-blue-300 text-blue-900 px-3 py-1 rounded-full text-sm shadow">
+                                            {stack.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-400">未登録</p>
+                            )}
+                        </div>
+
+                        <div className="mt-6">
+                            <h4 className="text-lg font-bold text-black mb-2">🏷 タグ</h4>
+                            {(project.tags ?? []).length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {project.tags.map(tag => (
+                                        <span key={tag.id} className="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm shadow">
+                                            {tag.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-400">未登録</p>
+                            )}
+                        </div>
+
+
+                        <div className="mt-8">
+                            <h4 className="text-lg font-bold text-black mb-4">🗂 工程一覧</h4>
+                            {(project.project_steps ?? []).length > 0 ? (
+                                <div className="space-y-6 relative">
+                                    {project.project_steps.map((step, index) => (
+                                        <div key={step.id} className="relative">
+                                            {/* ステップ表示 */}
+                                            <div className="bg-gray-800 p-4 rounded-lg shadow text-black">
+                                                <h5 className="font-semibold text-lg">{step.title}</h5>
+                                                <p className="mt-2 text-sm text-gray-200">{step.description}</p>
+                                            </div>
+
+                                            {/* ↓ 矢印の表示（最後の工程以外） */}
+                                            {index !== project.project_steps.length - 1 && (
+                                                <div className="flex justify-center my-2 text-black text-xl">
+                                                    ↓
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-black">工程が登録されていません。</p>
+                            )}
+                        </div>
+
+
+
+                        <div className="mt-8 flex flex-wrap gap-4">
+                            <Link
+                                href={route('home')}
+                                className="bg-blue-500 text-black px-4 py-2 rounded shadow hover:bg-blue-600 transition"
+                            >
+                                🏠 ホームへ戻る
                             </Link>
                         </div>
                     </div>

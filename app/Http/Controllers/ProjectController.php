@@ -184,6 +184,10 @@ class ProjectController extends Controller
             'tags' => 'array',
             'tags.*.id' => 'nullable|integer|exists:tags,id',
             'tags.*.name' => 'nullable|string|max:255',
+            'project_steps' => 'nullable|array',
+            'project_steps.*.id' => 'nullable|integer|exists:project_steps,id',
+            'project_steps.*.title' => 'required|string|max:255',
+            'project_steps.*.description' => 'nullable|string',
         ]);
 
         if ($request->hasFile('project_image')) {
@@ -239,6 +243,36 @@ class ProjectController extends Controller
             }
         }
         $project->tags()->sync($tagIds);
+
+        if (!empty($validated['project_steps'])) {
+            $existingStepIds = [];
+
+            foreach ($validated['project_steps'] as $stepData) {
+                if (!empty($stepData['id'])) {
+                    // 既存のステップを更新
+                    $step = ProjectStep::find($stepData['id']);
+                    if ($step && $step->project_id === $project->id) {
+                        $step->update([
+                            'title' => $stepData['title'],
+                            'description' => $stepData['description'] ?? '',
+                        ]);
+                        $existingStepIds[] = $step->id;
+                    }
+                } else {
+                    // 新規作成
+                    $newStep = ProjectStep::create([
+                        'project_id' => $project->id,
+                        'title' => $stepData['title'],
+                        'description' => $stepData['description'] ?? '',
+                    ]);
+                    $existingStepIds[] = $newStep->id;
+                }
+            }
+
+            // 🔥 削除されたステップを削除
+            $project->projectSteps()->whereNotIn('id', $existingStepIds)->delete();
+        }
+
 
         // 🔥 **技術スタック統計データを更新**
         TechStackStatistic::updateStatistics();
