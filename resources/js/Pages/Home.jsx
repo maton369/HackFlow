@@ -125,14 +125,12 @@ export default function Home({ auth, projects, userLikes = [] }) {
     return (
         <>
             {isAuthenticated ? (
-                <AuthenticatedLayout user={auth.user}>
+                <AuthenticatedLayout user={auth.user}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    searchCategory={searchCategory}
+                    setSearchCategory={setSearchCategory}>
                     <Head title="Home" />
-                    <SearchBar
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                        searchCategory={searchCategory}
-                        setSearchCategory={setSearchCategory}
-                    />
 
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12">
                         <h3 className="text-lg font-semibold">検索結果</h3>
@@ -161,18 +159,17 @@ export default function Home({ auth, projects, userLikes = [] }) {
                             likeCounts={likeCounts}
                             toggleLike={toggleLike}
                         />
-                        <NavigationLinks isAuthenticated={isAuthenticated} />
                     </div>
                 </AuthenticatedLayout>
             ) : (
-                <GuestLayout>
+                <GuestLayout
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    searchCategory={searchCategory}
+                    setSearchCategory={setSearchCategory}
+                >
+
                     <Head title="Home" />
-                    <SearchBar
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                        searchCategory={searchCategory}
-                        setSearchCategory={setSearchCategory}
-                    />
 
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-12">
                         <h3 className="text-lg font-semibold">検索結果</h3>
@@ -202,17 +199,6 @@ export default function Home({ auth, projects, userLikes = [] }) {
                             likeCounts={likeCounts}
                             toggleLike={toggleLike}
                         />
-                        <NavigationLinks isAuthenticated={isAuthenticated} />
-
-                        {/* ✅ テストアカウントログインボタン */}
-                        <div className="mt-6 flex justify-center">
-                            <button
-                                onClick={handleTestLogin}
-                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                            >
-                                テストアカウントでログイン
-                            </button>
-                        </div>
                     </div>
                 </GuestLayout>
             )}

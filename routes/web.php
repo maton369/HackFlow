@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Like;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\Facades\Socialite;
 
 // ✅ ホーム画面（ログイン不要）
 Route::get('/', function () {
@@ -126,5 +127,61 @@ Route::post('/register', [RegisteredUserController::class, 'store'])->name('regi
 Route::get('/login', function () {
     return Inertia::render('Auth/Login');
 })->name('login');
+
+Route::get('/auth/google', function () {
+    return Socialite::driver('google')->redirect();
+});
+
+Route::get('/auth/google/callback', function () {
+    try {
+        $googleUser = Socialite::driver('google')->stateless()->user();
+
+        $user = User::where('google_id', $googleUser->getId())
+            ->orWhere('email', $googleUser->getEmail())
+            ->first();
+
+        if (!$user) {
+            $user = User::create([
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'google_id' => $googleUser->getId(),
+                'password' => bcrypt(uniqid()), // ソーシャルログイン用の仮パスワード
+            ]);
+        }
+
+        Auth::login($user);
+        return redirect('/mypage');
+    } catch (\Exception $e) {
+        return redirect('/login')->with('error', 'Google ログインに失敗しました');
+    }
+});
+
+Route::get('/auth/github', function () {
+    return Socialite::driver('github')->redirect();
+});
+
+Route::get('/auth/github/callback', function () {
+    try {
+        $githubUser = Socialite::driver('github')->user();
+
+        $user = User::where('github_id', $githubUser->getId())
+            ->orWhere('email', $githubUser->getEmail())
+            ->first();
+
+        if (!$user) {
+            $user = User::create([
+                'name' => $githubUser->getName() ?? $githubUser->getNickname(),
+                'email' => $githubUser->getEmail(),
+                'github_id' => $githubUser->getId(),
+                'password' => bcrypt(uniqid()),
+            ]);
+        }
+
+        Auth::login($user);
+        return redirect('/mypage');
+    } catch (\Exception $e) {
+        return redirect('/login')->with('error', 'GitHub ログインに失敗しました');
+    }
+});
 
 require __DIR__ . '/auth.php';

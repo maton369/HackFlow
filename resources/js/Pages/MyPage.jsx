@@ -5,15 +5,6 @@ import { Head, Link } from '@inertiajs/react';
 export default function MyPage({ auth }) {
     const user = auth.user;
 
-    // ✅ コンポーネントがマウントされたときにユーザー情報をコンソールに出力
-    useEffect(() => {
-        console.log("🔍 マイページのユーザー情報:", user);
-        console.log("🔍 技術スタック:", user.tech_stacks);
-        console.log("🔍 関連URL:", user.urls);
-        console.log("🔍 いいねしたプロジェクト:", user.liked_projects)
-        console.log(route('teams.create'));
-    }, []);
-
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -36,70 +27,104 @@ export default function MyPage({ auth }) {
                                     <img
                                         src={user.profile_image_url}
                                         alt="プロフィール画像"
-                                        className="w-32 h-32 rounded-full mx-auto shadow"
+                                        className="w-32 h-32 rounded-full mx-auto shadow-lg border-4 border-gray-300"
                                     />
                                 ) : (
-                                    <p className="text-gray-500">プロフィール画像なし</p>
+                                    <div className="w-32 h-32 flex items-center justify-center bg-gray-200 rounded-full mx-auto shadow-lg">
+                                        <span className="text-gray-600 text-sm">No Image</span>
+                                    </div>
                                 )}
                             </div>
 
+
                             {/* ✅ 基本情報 */}
-                            <div className="mt-4">
-                                <p><strong>名前:</strong> {user.name}</p>
-                                <p><strong>メールアドレス:</strong> {user.email}</p>
-                                <p><strong>登録日:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
-                                <p><strong>自己紹介:</strong> {user.bio || "未登録"}</p>
-                                <p><strong>技術レベル:</strong> {user.tech_level || "未設定"}</p>
+                            <div className="mt-6 bg-gray-100 p-6 rounded-lg shadow-md">
+                                <h4 className="font-semibold text-lg mb-4">基本情報</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                                    {/* 📛 名前 */}
+                                    <div className="flex items-center space-x-3 bg-white p-4 rounded-lg shadow">
+                                        <span className="text-lg">👤</span>
+                                        <p className="text-gray-700 font-medium">名前: {user.name}</p>
+                                    </div>
+
+                                    {/* 📅 登録日 */}
+                                    <div className="flex items-center space-x-3 bg-white p-4 rounded-lg shadow">
+                                        <span className="text-lg">📅</span>
+                                        <p className="text-gray-700 font-medium">登録日: {new Date(user.created_at).toLocaleDateString()}</p>
+                                    </div>
+
+                                    {/* 📝 自己紹介 */}
+                                    <div className="flex items-start space-x-3 bg-white p-4 rounded-lg shadow col-span-1 md:col-span-2">
+                                        <span className="text-lg">📝</span>
+                                        <p className="text-gray-700 font-medium">自己紹介: {user.bio || "未登録"}</p>
+                                    </div>
+
+                                    {/* 💡 技術レベル */}
+                                    <div className="flex items-center space-x-3 bg-white p-4 rounded-lg shadow">
+                                        <span className="text-lg">💡</span>
+                                        <p className="text-gray-700 font-medium">技術レベル: {user.tech_level || "未設定"}</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* ✅ 技術スタック */}
                             <div className="mt-6">
                                 <h4 className="font-semibold">技術スタック</h4>
-                                {user.tech_stacks && Array.isArray(user.tech_stacks) && user.tech_stacks.length > 0 ? (
-                                    <ul className="list-disc pl-5">
+                                {user.tech_stacks && user.tech_stacks.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2 mt-2">
                                         {user.tech_stacks.map((stack, index) => (
-                                            <li key={index}>{stack.name}</li>
+                                            <span key={index} className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold shadow">
+                                                {stack.name}
+                                            </span>
                                         ))}
-                                    </ul>
+                                    </div>
                                 ) : (
                                     <p className="text-gray-500">未設定</p>
                                 )}
                             </div>
 
                             {/* ✅ 関連URL */}
-                            <div className="mt-6">
+                            <div className="mt-4 flex flex-wrap justify-center gap-4">
                                 <h4 className="font-semibold">関連URL</h4>
-                                {user.urls && Array.isArray(user.urls) && user.urls.length > 0 ? (
-                                    <ul className="list-disc pl-5">
-                                        {user.urls.map((url, index) => (
-                                            <li key={index}>
-                                                <a href={url.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                                    {url.url_type}: {url.url}
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="text-gray-500">なし</p>
-                                )}
+                                {user.urls.map((urlObj, index) => {
+                                    let icon = "🔗"; // デフォルトのリンクアイコン
+                                    if (urlObj.url.includes("github.com")) {
+                                        icon = "🐱"; // GitHubアイコン
+                                    } else if (urlObj.url.includes("twitter.com")) {
+                                        icon = "🐦"; // Twitterアイコン
+                                    }
+
+                                    return (
+                                        <a
+                                            key={index}
+                                            href={urlObj.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-lg shadow-md hover:bg-gray-200 transition border border-gray-300"
+                                        >
+                                            <span className="text-lg">{icon}</span>
+                                            <span className="text-sm font-medium text-gray-700">{urlObj.url}</span>
+                                        </a>
+                                    );
+                                })}
                             </div>
 
                             {/* ✅ 所属チーム */}
                             <div className="mt-6">
                                 <h4 className="font-semibold">所属チーム</h4>
                                 {user.teams && user.teams.length > 0 ? (
-                                    <ul className="list-disc pl-5">
+                                    <div className="flex flex-wrap gap-3 mt-2">
                                         {user.teams.map(team => (
-                                            <li key={team.id}>
-                                                <Link
-                                                    href={route('teams.show', team.id)}
-                                                    className="text-blue-500 hover:underline"
-                                                >
-                                                    {team.team_name ? team.team_name : "チーム名不明"}
-                                                </Link>
-                                            </li>
+                                            <Link
+                                                key={team.id}
+                                                href={route('teams.show', team.id)}
+                                                className="bg-green-200 text-green-900 px-4 py-2 rounded-lg shadow hover:bg-green-300 transition"
+                                            >
+                                                {team.team_name || "チーム名不明"}
+                                            </Link>
                                         ))}
-                                    </ul>
+                                    </div>
                                 ) : (
                                     <p className="text-gray-500">未所属</p>
                                 )}
@@ -109,18 +134,17 @@ export default function MyPage({ auth }) {
                             <div className="mt-6">
                                 <h4 className="font-semibold">関係するプロジェクト</h4>
                                 {user.projects && user.projects.length > 0 ? (
-                                    <ul className="list-disc pl-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                                         {user.projects.map(project => (
-                                            <li key={project.id}>
-                                                <Link
-                                                    href={route('projects.show', project.id)}
-                                                    className="text-blue-500 hover:underline"
-                                                >
-                                                    {project.project_name} ({project.team?.team_name || "チームなし"})
-                                                </Link>
-                                            </li>
+                                            <Link
+                                                key={project.id}
+                                                href={route('projects.show', project.id)}
+                                                className="block bg-blue-100 text-blue-900 px-4 py-3 rounded-lg shadow hover:bg-blue-200 transition"
+                                            >
+                                                {project.project_name} ({project.team?.team_name || "チームなし"})
+                                            </Link>
                                         ))}
-                                    </ul>
+                                    </div>
                                 ) : (
                                     <p className="text-gray-500">関係するプロジェクトがありません。</p>
                                 )}
@@ -130,18 +154,17 @@ export default function MyPage({ auth }) {
                             <div className="mt-6">
                                 <h4 className="font-semibold">いいねしたプロジェクト</h4>
                                 {user.liked_projects && user.liked_projects.length > 0 ? (
-                                    <ul className="list-disc pl-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                                         {user.liked_projects.map(project => (
-                                            <li key={project.id}>
-                                                <Link
-                                                    href={route('projects.show', project.id)}
-                                                    className="text-blue-500 hover:underline"
-                                                >
-                                                    {project.project_name} ({project.team?.team_name || "チームなし"})
-                                                </Link>
-                                            </li>
+                                            <Link
+                                                key={project.id}
+                                                href={route('projects.show', project.id)}
+                                                className="block bg-pink-100 text-pink-900 px-4 py-3 rounded-lg shadow hover:bg-pink-200 transition"
+                                            >
+                                                ❤️ {project.project_name} ({project.team?.team_name || "チームなし"})
+                                            </Link>
                                         ))}
-                                    </ul>
+                                    </div>
                                 ) : (
                                     <p className="text-gray-500">いいねしたプロジェクトがありません。</p>
                                 )}
@@ -149,36 +172,36 @@ export default function MyPage({ auth }) {
 
 
                             {/* ✅ ボタン一覧 */}
-                            <div className="mt-6 space-y-2">
+                            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <Link
                                     href={route('profile.edit')}
-                                    className="block px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                                    className="flex items-center justify-center px-4 py-3 bg-yellow-400 text-black font-semibold rounded-lg shadow hover:bg-yellow-500 transition"
                                 >
-                                    プロフィール編集
+                                    ✏️ プロフィール編集
                                 </Link>
                                 <Link
                                     href={route('projects.create')}
-                                    className="block px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                    className="flex items-center justify-center px-4 py-3 bg-green-400 text-black font-semibold rounded-lg shadow hover:bg-green-500 transition"
                                 >
-                                    プロジェクト作成
+                                    📁 プロジェクト作成
                                 </Link>
                                 <Link
                                     href={route('teams.create')}
-                                    className="block px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                                    className="flex items-center justify-center px-4 py-3 bg-purple-400 text-white font-semibold rounded-lg shadow hover:bg-purple-500 transition"
                                 >
-                                    チーム作成
+                                    👥 チーム作成
                                 </Link>
                                 <Link
                                     href={route('statistics')}
-                                    className="block px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                    className="flex items-center justify-center px-4 py-3 bg-gray-400 text-white font-semibold rounded-lg shadow hover:bg-gray-500 transition"
                                 >
-                                    統計ページ
+                                    📊 統計ページ
                                 </Link>
                                 <Link
                                     href={route('home')}
-                                    className="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                    className="flex items-center justify-center px-4 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow hover:bg-blue-500 transition"
                                 >
-                                    ホームへ戻る
+                                    🏠 ホームへ戻る
                                 </Link>
                             </div>
 

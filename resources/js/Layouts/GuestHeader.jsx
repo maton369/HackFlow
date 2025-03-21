@@ -1,32 +1,59 @@
 import { Link } from '@inertiajs/react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import SearchBar from '@/Pages/SearchBar'; // パスは環境に応じて調整
 
-export default function GuestHeader() {
+export default function GuestHeader({
+    searchQuery,
+    setSearchQuery,
+    searchCategory,
+    setSearchCategory
+}) {
     return (
-        <nav className="bg-[#55CFFF] border-b border-gray-100">
+        <nav className="bg-[#55CFFF] border-b border-gray-100 fixed top-0 left-0 right-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16 items-center">
-                    {/* ✅ 左側：ロゴ */}
-                    <Link href="/">
-                        <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                    </Link>
+                <div className="flex justify-between items-center h-16">
 
-                    {/* ✅ 中央：アプリ名 */}
-                    <div className="hidden sm:flex text-lg font-semibold text-black">
+                    {/* ✅ 左側：アプリ名 */}
+                    <div className="text-lg font-semibold text-black">
                         <Link href="/" className="hover:underline">
                             HackFlow -博路-
                         </Link>
                     </div>
 
+                    {/* ✅ 中央：検索バー */}
+                    <div className="flex-1 flex items-center justify-center h-16">
+                        <div className="w-full max-w-md">
+                            <SearchBar
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                searchCategory={searchCategory}
+                                setSearchCategory={setSearchCategory}
+                                inHeader={true}
+                            />
+                        </div>
+                    </div>
+
                     {/* ✅ 右側：ログイン・新規登録 */}
-                    <div className="hidden sm:flex space-x-4">
-                        <Link href={route('login')} className="text-gray-700 hover:text-gray-900">
+                    <div className="flex flex-wrap justify-end items-center space-x-2">
+                        <Link
+                            href={route('statistics')}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded transition"
+                        >
+                            統計
+                        </Link>
+                        <Link
+                            href={route('login')}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded transition"
+                        >
                             ログイン
                         </Link>
-                        <Link href={route('register')} className="text-gray-700 hover:text-gray-900">
+                        <Link
+                            href={route('register')}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded transition"
+                        >
                             新規登録
                         </Link>
                     </div>
+
                 </div>
             </div>
         </nav>
