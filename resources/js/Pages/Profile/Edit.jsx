@@ -132,34 +132,30 @@ export default function Edit({ auth, user }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <form onSubmit={submit}>
-                            {/* 🔥 基本情報 */}
-                            <div>
-                                <InputLabel htmlFor="name" value="名前" />
-                                <TextInput
-                                    id="name"
-                                    name="name"
-                                    value={data.name}
-                                    className="mt-1 block w-full"
-                                    autoComplete="name"
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    required
-                                />
-                                <InputError message={errors.name} className="mt-2" />
-                            </div>
+                            {/* 名前 */}
+                            <InputLabel htmlFor="name" value="名前" />
+                            <TextInput
+                                id="name"
+                                name="name"
+                                value={data.name}
+                                className="mt-1 block w-full"
+                                autoComplete="name"
+                                onChange={(e) => setData('name', e.target.value)}
+                                required
+                            />
+                            <InputError message={errors.name} className="mt-2" />
 
+                            {/* 自己紹介 */}
                             <div className="mt-4">
-                                <InputLabel htmlFor="email" value="メールアドレス" />
+                                <InputLabel htmlFor="bio" value="自己紹介" />
                                 <TextInput
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    value={data.email}
+                                    id="bio"
+                                    name="bio"
+                                    value={data.bio}
                                     className="mt-1 block w-full"
-                                    autoComplete="email"
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    required
+                                    onChange={(e) => setData('bio', e.target.value)}
                                 />
-                                <InputError message={errors.email} className="mt-2" />
+                                <InputError message={errors.bio} className="mt-2" />
                             </div>
 
                             {/* 🔥 自己紹介 */}
@@ -175,7 +171,6 @@ export default function Edit({ auth, user }) {
                                 <InputError message={errors.bio} className="mt-2" />
                             </div>
 
-                            {/* 🔥 プロフィール画像アップロード */}
                             <div className="mt-4">
                                 <InputLabel htmlFor="profile_image" value="プロフィール画像" />
                                 <input
@@ -184,12 +179,11 @@ export default function Edit({ auth, user }) {
                                     name="profile_image"
                                     accept="image/*"
                                     className="mt-1 block w-full"
-                                    onChange={handleFileChange} // 🔥 画像を選択
+                                    onChange={handleFileChange}
                                 />
                                 <InputError message={errors.profile_image} className="mt-2" />
                             </div>
 
-                            {/* 🔥 画像プレビュー */}
                             {data.profile_image_url && (
                                 <div className="mt-4">
                                     <p>現在のプロフィール画像:</p>
@@ -197,7 +191,6 @@ export default function Edit({ auth, user }) {
                                 </div>
                             )}
 
-                            {/* 🔥 技術レベル */}
                             <div className="mt-4">
                                 <InputLabel htmlFor="tech_level" value="技術レベル" />
                                 <select
@@ -215,7 +208,6 @@ export default function Edit({ auth, user }) {
                                 <InputError message={errors.tech_level} className="mt-2" />
                             </div>
 
-                            {/* 🔥 技術スタック */}
                             <div className="mt-4">
                                 <InputLabel value="技術スタック" />
                                 {data.tech_stacks.map((stack, index) => (
@@ -235,9 +227,6 @@ export default function Edit({ auth, user }) {
                                 </button>
                             </div>
 
-
-
-                            {/* 🔥 関連URL */}
                             <div className="mt-4">
                                 <InputLabel value="関連URL" />
                                 {data.urls.map((url, index) => (
@@ -270,7 +259,6 @@ export default function Edit({ auth, user }) {
                             </div>
 
                             <div className="flex items-center justify-between mt-4">
-                                {/* 🔥 マイページに戻るボタン */}
                                 <button
                                     type="button"
                                     onClick={() => window.location.href = route('mypage')}
@@ -279,12 +267,10 @@ export default function Edit({ auth, user }) {
                                     マイページに戻る
                                 </button>
 
-                                {/* 🔥 更新ボタン */}
                                 <PrimaryButton className="ms-4" disabled={processing}>
                                     更新
                                 </PrimaryButton>
                             </div>
-
                         </form>
                     </div>
                 </div>

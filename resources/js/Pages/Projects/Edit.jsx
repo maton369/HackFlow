@@ -85,9 +85,11 @@ export default function Edit({ auth, project }) {
 
         data.tech_stacks.forEach(stack => formData.append('tech_stacks[]', stack.name));
         data.tags.forEach(tag => formData.append('tags[]', tag.name));
-        data.project_steps.forEach(step => {
-            formData.append('project_steps[][title]', step.title);
-            formData.append('project_steps[][description]', step.description);
+
+        data.project_steps.forEach((step, index) => {
+            formData.append(`project_steps[${index}][id]`, step.id ?? '');
+            formData.append(`project_steps[${index}][title]`, step.title);
+            formData.append(`project_steps[${index}][description]`, step.description);
         });
 
         console.log("📡 送信データ:", [...formData.entries()]);
