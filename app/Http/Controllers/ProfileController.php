@@ -46,31 +46,22 @@ class ProfileController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        // 🔥 デバッグ用ログ
-        Log::info("📷 プロフィール画像の更新リクエスト", [
-            'hasFile' => $request->hasFile('profile_image'),
-            'file_info' => $request->file('profile_image') ? $request->file('profile_image')->getClientOriginalName() : null
-        ]);
+        Log::info("📥 受け取ったデータ", $validated);
 
-        // 🔥 画像がアップロードされた場合のみ Cloudinary にアップロード
+        // 🔥 画像の処理
         if ($request->hasFile('profile_image')) {
             try {
-                // 既存の画像を削除（必要なら）
                 if ($user->profile_image_url) {
                     Log::info("🔥 既存の画像を削除: " . $user->profile_image_url);
                     Cloudinary::destroy($user->profile_image_url);
                 }
 
-                // Cloudinary に画像をアップロード
                 $uploadResponse = Cloudinary::upload($request->file('profile_image')->getRealPath());
-
-                // デバッグ用: Cloudinary のレスポンスを確認
                 Log::info("✅ Cloudinary アップロード成功", [
                     'secure_url' => $uploadResponse->getSecurePath(),
                     'public_id' => $uploadResponse->getPublicId()
                 ]);
 
-                // URL を取得してプロパティに設定
                 $validated['profile_image_url'] = $uploadResponse->getSecurePath();
             } catch (\Exception $e) {
                 Log::error("❌ Cloudinary アップロードエラー", ['error' => $e->getMessage()]);
@@ -84,13 +75,43 @@ class ProfileController extends Controller
             'email' => $validated['email'] ?? $user->email,
             'bio' => array_key_exists('bio', $validated) ? $validated['bio'] : $user->bio,
             'tech_level' => array_key_exists('tech_level', $validated) ? $validated['tech_level'] : $user->tech_level,
-            'profile_image_url' => $validated['profile_image_url'] ?? $user->profile_image_url, // 🔥 画像URLを更新
+            'profile_image_url' => $validated['profile_image_url'] ?? $user->profile_image_url,
         ]);
 
         $user->save();
 
+        // ✅ **技術スタックの更新**
+        if (isset($validated['tech_stacks'])) {
+            Log::info("🔧 技術スタックを更新", ['tech_stacks' => $validated['tech_stacks']]);
+
+            // 既存の技術スタックを削除して、新しいデータを挿入
+            $user->techStacks()->delete();
+
+            foreach ($validated['tech_stacks'] as $stackName) {
+                $stack = TechStack::firstOrCreate(['name' => $stackName]);
+                $user->techStacks()->attach($stack->id);
+            }
+        }
+
+        // ✅ **関連URLの更新**
+        if (isset($validated['urls'])) {
+            Log::info("🌐 関連URLを更新", ['urls' => $validated['urls']]);
+
+            // 既存の URL を削除して、新しいデータを挿入
+            $user->urls()->delete();
+
+            foreach ($validated['urls'] as $urlData) {
+                UserUrl::create([
+                    'user_id' => $user->id,
+                    'url' => $urlData['url'],
+                    'url_type' => $urlData['url_type'],
+                ]);
+            }
+        }
+
         return Redirect::route('mypage')->with('success', '✅ プロフィールが更新されました！');
     }
+
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([

@@ -58,7 +58,17 @@ export default function Edit({ auth, user }) {
         }
 
         if (data.tech_stacks.length > 0) {
-            data.tech_stacks.forEach(stack => formData.append('tech_stacks[]', stack));
+            data.tech_stacks.forEach((stack, index) => {
+                formData.append(`tech_stacks[${index}]`, stack);
+            });
+        }
+
+        if (data.urls.length > 0) {
+            data.urls.forEach((url, index) => {
+                formData.append(`urls[${index}][id]`, url.id);
+                formData.append(`urls[${index}][url]`, url.url);
+                formData.append(`urls[${index}][url_type]`, url.url_type);
+            });
         }
 
         // 🔥 デバッグ用ログ

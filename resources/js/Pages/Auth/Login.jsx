@@ -92,6 +92,37 @@ export default function Login({ status, canResetPassword }) {
                     </PrimaryButton>
                 </div>
             </form>
+
+            {/* ✅ ソーシャルログインボタン：横並び & ロゴ付き */}
+            <div className="mt-6 flex justify-center space-x-4">
+                {/* Google */}
+                <a
+                    href="/auth/google"
+                    className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-sm text-gray-800 hover:bg-gray-100 transition"
+                >
+                    <img
+                        src="https://www.svgrepo.com/show/475656/google-color.svg"
+                        alt="Google Logo"
+                        className="w-5 h-5 mr-2"
+                    />
+                    Googleでログイン
+                </a>
+
+                {/* GitHub */}
+                <a
+                    href="/auth/github"
+                    className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-md font-semibold text-sm hover:bg-gray-900 transition"
+                >
+                    <img
+                        src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                        alt="GitHub Logo"
+                        className="w-5 h-5 mr-2"
+                    />
+                    GitHubでログイン
+                </a>
+            </div>
+
+
         </GuestLayout>
     );
 }
