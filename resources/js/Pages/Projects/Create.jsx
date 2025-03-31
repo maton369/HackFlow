@@ -19,6 +19,9 @@ export default function Create({ auth, teams }) {
         tags: [], // 🔥 追加・削除可能な配列
     });
 
+    const [isCreatingTeam, setIsCreatingTeam] = useState(false);
+    const [newTeam, setNewTeam] = useState({ name: '', image: null });
+
     const [isLoading, setIsLoading] = useState(false);
 
     const handleFileChange = (e) => {
@@ -176,24 +179,58 @@ export default function Create({ auth, teams }) {
                                     <InputError message={errors.live_url} className="mt-2" />
                                 </div>
 
-                                {/* ✅ チーム選択 */}
+                                {/* ✅ チーム選択 or 新規作成 */}
                                 <div className="mt-4">
                                     <InputLabel htmlFor="team_id" value="チームを選択" />
-                                    <select
-                                        id="team_id"
-                                        value={data.team_id}
-                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                        onChange={(e) => setData('team_id', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">チームを選択</option>
-                                        {teams.map((team) => (
-                                            <option key={team.id} value={team.id}>
-                                                {team.team_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <InputError message={errors.team_id} className="mt-2" />
+                                    {!isCreatingTeam ? (
+                                        <>
+                                            <select
+                                                id="team_id"
+                                                value={data.team_id}
+                                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                                onChange={(e) => setData('team_id', e.target.value)}
+                                            >
+                                                <option value="">チームを選択</option>
+                                                {teams.map((team) => (
+                                                    <option key={team.id} value={team.id}>
+                                                        {team.team_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                className="text-blue-500 text-sm mt-2"
+                                                onClick={() => setIsCreatingTeam(true)}
+                                            >
+                                                + 新しいチームを作成
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TextInput
+                                                placeholder="チーム名"
+                                                value={newTeam.name}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
+                                            />
+                                            <input
+                                                type="file"
+                                                className="mt-2"
+                                                accept="image/*"
+                                                onChange={(e) => setNewTeam({ ...newTeam, image: e.target.files[0] })}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="text-gray-500 text-sm mt-2"
+                                                onClick={() => {
+                                                    setIsCreatingTeam(false);
+                                                    setNewTeam({ name: '', image: null });
+                                                }}
+                                            >
+                                                ⬅ 既存チームを選ぶ
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* ✅ 使用技術 (追加・削除可能) */}
