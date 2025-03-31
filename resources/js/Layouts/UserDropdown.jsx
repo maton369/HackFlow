@@ -32,29 +32,36 @@ export default function UserDropdown({ user }) {
             </Dropdown.Trigger>
 
             <Dropdown.Content>
+                <Dropdown.Link href={route('projects.create')}>
+                    プロジェクト作成
+                </Dropdown.Link>
+
                 <Dropdown.Link href={route('mypage')}>マイページ</Dropdown.Link>
                 <Dropdown.Link href={route('profile.edit')}>プロフィール編集</Dropdown.Link>
                 <Dropdown.Link href={route('logout')} method="post" as="button">ログアウト</Dropdown.Link>
 
-                <hr className="my-2" />
-                {/* ✅ アカウント削除ボタン */}
-                <div className="px-4 py-2">
-                    <label className="block text-sm font-medium text-gray-700">パスワードを入力して削除</label>
-                    <input
-                        type="password"
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        className="border-gray-300 rounded-md shadow-sm w-full mt-2"
-                        placeholder="パスワード"
-                    />
-                    <button
-                        onClick={handleDeleteAccount}
-                        className="mt-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 w-full"
-                        disabled={processing}
-                    >
-                        アカウント削除
-                    </button>
-                </div>
+                {user.email !== 'leader@example.com' && (
+                    <>
+                        <hr className="my-2" />
+                        <div className="px-4 py-2">
+                            <label className="block text-sm font-medium text-gray-700">パスワードを入力して削除</label>
+                            <input
+                                type="password"
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
+                                className="border-gray-300 rounded-md shadow-sm w-full mt-2"
+                                placeholder="パスワード"
+                            />
+                            <button
+                                onClick={handleDeleteAccount}
+                                className="mt-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 w-full"
+                                disabled={processing}
+                            >
+                                アカウント削除
+                            </button>
+                        </div>
+                    </>
+                )}
             </Dropdown.Content>
         </Dropdown>
     );
