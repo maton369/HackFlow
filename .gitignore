@@ -23,3 +23,6 @@ yarn-error.log
 docker-compose.override.yml
 /docker/mysql/data
 /docker/redis/data
+
+# CI関連
+.env.ci

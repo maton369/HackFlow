@@ -1,0 +1,132 @@
+name: HackFlow CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: hackflow_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, redis
+        coverage: xdebug
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Configure .env for testing
+      run: |
+        sed -i 's/APP_NAME=.*/APP_NAME=HackFlow/' .env
+        sed -i 's/APP_ENV=.*/APP_ENV=testing/' .env
+        sed -i 's/DB_DATABASE=.*/DB_DATABASE=hackflow_test/' .env
+        sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
+        sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=password/' .env
+        sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+        sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=redis/' .env
+        sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=redis/' .env
+        sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env
+        sed -i 's/MAIL_MAILER=.*/MAIL_MAILER=array/' .env
+        echo "CLOUDINARY_URL=cloudinary://test:test@test" >> .env
+        echo "GOOGLE_CLIENT_ID=test-google-client-id" >> .env
+        echo "GOOGLE_CLIENT_SECRET=test-google-client-secret" >> .env
+        echo "GITHUB_CLIENT_ID=test-github-client-id" >> .env
+        echo "GITHUB_CLIENT_SECRET=test-github-client-secret" >> .env
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: /tmp/composer-cache
+        key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build assets
+      run: npm run build
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Directory permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Run database migrations
+      run: php artisan migrate --force
+
+    - name: Run PHPUnit tests
+      run: php artisan test --coverage --min=80
+
+    - name: Upload coverage reports (if available)
+      uses: codecov/codecov-action@v3
+      if: success() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: hackflow-coverage
+
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Run Laravel Pint (Code Style)
+      run: vendor/bin/pint --test
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint --if-present
+
+    - name: Run Prettier check
+      run: npm run format:check --if-present
