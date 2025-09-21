@@ -17,3 +17,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Docker関連
+.env.docker
+docker-compose.override.yml
+/docker/mysql/data
+/docker/redis/data
