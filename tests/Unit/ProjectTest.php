@@ -52,10 +52,10 @@ class ProjectTest extends TestCase
             'github_url',
             'live_url',
             'team_id',
-            'like_count'
+            'like_count',
         ];
 
-        $project = new Project();
+        $project = new Project;
 
         $this->assertEquals($fillable, $project->getFillable());
     }
@@ -67,7 +67,7 @@ class ProjectTest extends TestCase
         $projectData = [
             'project_name' => 'Test Project',
             'app_name' => 'Test App',
-            'team_id' => $team->id
+            'team_id' => $team->id,
         ];
 
         $project = Project::create($projectData);

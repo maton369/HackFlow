@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
 use App\Models\Team;
 use App\Models\TeamMember;
-use App\Models\User;
-use Inertia\Response;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TeamController extends Controller
 {
@@ -32,7 +31,7 @@ class TeamController extends Controller
             'team_name' => 'required|string|max:255|unique:teams,team_name',
             'team_image' => 'nullable|image', // 🔥 画像の最大サイズを指定
             'members' => 'array',
-            'members.*' => 'exists:users,id'
+            'members.*' => 'exists:users,id',
         ]);
 
         // 🔥 画像アップロード処理
@@ -74,7 +73,6 @@ class TeamController extends Controller
         return Redirect::route('mypage')->with('success', 'チームが作成されました！');
     }
 
-
     /**
      * チーム詳細を表示
      */
@@ -84,12 +82,11 @@ class TeamController extends Controller
             'members.user',
             'projects' => function ($query) {
                 $query->withCount('likes'); // ✅ いいね数を取得
-            }
+            },
         ])->findOrFail($id);
 
         return Inertia::render('Teams/Show', ['team' => $team]);
     }
-
 
     /**
      * チーム編集フォームを表示
@@ -125,7 +122,7 @@ class TeamController extends Controller
         }
 
         $validated = $request->validate([
-            'team_name' => 'required|string|max:255|unique:teams,team_name,' . $team->id,
+            'team_name' => 'required|string|max:255|unique:teams,team_name,'.$team->id,
             'team_image' => 'nullable|image|max:2048', // 🔥 画像ファイルを受け付ける
             'members' => 'array',
             'members.*' => 'exists:users,id',
@@ -154,26 +151,25 @@ class TeamController extends Controller
             TeamMember::create([
                 'team_id' => $team->id,
                 'user_id' => $userId,
-                'role' => $role
+                'role' => $role,
             ]);
         }
 
         return Redirect::route('teams.show', $team->id)->with('success', 'チームが更新されました！');
     }
 
-
     public function destroy($id)
     {
         $team = Team::with('members')->findOrFail($id);
 
-        if (!$team) {
+        if (! $team) {
             return redirect()->route('home')->with('success', 'チームが削除されました。');
-        };
+        }
 
         // 🔥 現在のユーザーがリーダーかチェック
         $isLeader = $team->members->where('user_id', auth()->id())->where('role', 'owner')->count() > 0;
 
-        if (!$isLeader) {
+        if (! $isLeader) {
             return redirect()->route('teams.show', $team->id)->with('error', 'チームを削除できるのはリーダーのみです。');
         }
 

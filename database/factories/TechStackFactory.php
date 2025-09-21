@@ -27,7 +27,7 @@ class TechStackFactory extends Factory
         $tech = $this->faker->randomElement($techStacks);
 
         return [
-            'name' => $tech['name'] . '-' . $this->faker->randomNumber(3),
+            'name' => $tech['name'].'-'.$this->faker->randomNumber(3),
         ];
     }
 

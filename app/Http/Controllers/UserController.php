@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
@@ -43,11 +43,11 @@ class UserController extends Controller
             'techStacks',
             'urls',
             'teams',
-            'projects:id,project_name,team_id' // ✅ 明示的に `project_name` を取得
+            'projects:id,project_name,team_id', // ✅ 明示的に `project_name` を取得
         ]);
 
         return Inertia::render('MyPage', [
-            'auth' => ['user' => $user]
+            'auth' => ['user' => $user],
         ]);
     }
 }

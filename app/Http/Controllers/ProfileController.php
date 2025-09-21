@@ -3,26 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Project;
+use App\Models\Team;
+use App\Models\TeamMember;
+use App\Models\TechStack;
+use App\Models\User;
+use App\Models\UserUrl;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Models\User;
-use App\Models\TechStack;
-use App\Models\UserUrl;
-use App\Models\Team;
-use App\Models\Project;
-use App\Models\TeamMember;
-
 
 class ProfileController extends Controller
 {
-
     public function show(Request $request)
     {
         $user = User::with(['techStacks', 'urls'])->find($request->user()->id);
@@ -46,25 +44,26 @@ class ProfileController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        Log::info("📥 受け取ったデータ", $validated);
+        Log::info('📥 受け取ったデータ', $validated);
 
         // 🔥 画像の処理
         if ($request->hasFile('profile_image')) {
             try {
                 if ($user->profile_image_url) {
-                    Log::info("🔥 既存の画像を削除: " . $user->profile_image_url);
+                    Log::info('🔥 既存の画像を削除: '.$user->profile_image_url);
                     Cloudinary::destroy($user->profile_image_url);
                 }
 
                 $uploadResponse = Cloudinary::upload($request->file('profile_image')->getRealPath());
-                Log::info("✅ Cloudinary アップロード成功", [
+                Log::info('✅ Cloudinary アップロード成功', [
                     'secure_url' => $uploadResponse->getSecurePath(),
-                    'public_id' => $uploadResponse->getPublicId()
+                    'public_id' => $uploadResponse->getPublicId(),
                 ]);
 
                 $validated['profile_image_url'] = $uploadResponse->getSecurePath();
             } catch (\Exception $e) {
-                Log::error("❌ Cloudinary アップロードエラー", ['error' => $e->getMessage()]);
+                Log::error('❌ Cloudinary アップロードエラー', ['error' => $e->getMessage()]);
+
                 return Redirect::route('profile.edit')->with('error', '画像のアップロードに失敗しました。');
             }
         }
@@ -82,7 +81,7 @@ class ProfileController extends Controller
 
         // ✅ **技術スタックの更新**
         if (isset($validated['tech_stacks'])) {
-            Log::info("🔧 技術スタックを更新", ['tech_stacks' => $validated['tech_stacks']]);
+            Log::info('🔧 技術スタックを更新', ['tech_stacks' => $validated['tech_stacks']]);
 
             // 既存の技術スタックを削除して、新しいデータを挿入
             $user->techStacks()->delete();
@@ -95,7 +94,7 @@ class ProfileController extends Controller
 
         // ✅ **関連URLの更新**
         if (isset($validated['urls'])) {
-            Log::info("🌐 関連URLを更新", ['urls' => $validated['urls']]);
+            Log::info('🌐 関連URLを更新', ['urls' => $validated['urls']]);
 
             // 既存の URL を削除して、新しいデータを挿入
             $user->urls()->delete();
@@ -173,9 +172,6 @@ class ProfileController extends Controller
 
         return Redirect::to('/')->with('success', 'アカウントが削除されました。');
     }
-
-
-
 
     public function mypage(Request $request): Response
     {

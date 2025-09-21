@@ -16,7 +16,7 @@ class Project extends Model
         'github_url',
         'live_url',
         'team_id',
-        'like_count'
+        'like_count',
     ];
 
     public function team()

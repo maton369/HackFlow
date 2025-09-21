@@ -1,18 +1,18 @@
 <?php
 
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\LikeController;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Models\Like;
 use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Like;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 
 // ✅ ホーム画面（ログイン不要）
@@ -100,8 +100,8 @@ Route::middleware(['auth'])->group(function () {
                 'urls',
                 'teams:id,team_name',
                 'projects:id,project_name,team_id', // ✅ 関係するプロジェクトを追加
-                'likedProjects:id,project_name,team_id'
-            ])
+                'likedProjects:id,project_name,team_id',
+            ]),
         ]);
     })->name('mypage');
 
@@ -140,7 +140,7 @@ Route::get('/auth/google/callback', function () {
             ->orWhere('email', $googleUser->getEmail())
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
@@ -150,6 +150,7 @@ Route::get('/auth/google/callback', function () {
         }
 
         Auth::login($user);
+
         return redirect('/mypage');
     } catch (\Exception $e) {
         return redirect('/login')->with('error', 'Google ログインに失敗しました');
@@ -168,7 +169,7 @@ Route::get('/auth/github/callback', function () {
             ->orWhere('email', $githubUser->getEmail())
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => $githubUser->getName() ?? $githubUser->getNickname(),
                 'email' => $githubUser->getEmail(),
@@ -178,10 +179,11 @@ Route::get('/auth/github/callback', function () {
         }
 
         Auth::login($user);
+
         return redirect('/mypage');
     } catch (\Exception $e) {
         return redirect('/login')->with('error', 'GitHub ログインに失敗しました');
     }
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

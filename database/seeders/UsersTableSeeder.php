@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
@@ -22,7 +21,7 @@ class UsersTableSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'bio' => 'This is the leader of the team.',
                 'tech_level' => 'advanced',
-                'profile_image_url' => 'https://example.com/leader.jpg'
+                'profile_image_url' => 'https://example.com/leader.jpg',
             ]
         );
 
@@ -34,9 +33,9 @@ class UsersTableSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'bio' => 'This is a member of the team.',
                 'tech_level' => 'intermediate',
-                'profile_image_url' => 'https://example.com/member.jpg'
+                'profile_image_url' => 'https://example.com/member.jpg',
             ]
         );
-        
+
     }
 }

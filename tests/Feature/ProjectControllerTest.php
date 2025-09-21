@@ -14,6 +14,7 @@ class ProjectControllerTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $team;
 
     protected function setUp(): void
@@ -27,7 +28,7 @@ class ProjectControllerTest extends TestCase
         TeamMember::create([
             'user_id' => $this->user->id,
             'team_id' => $this->team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
     }
 
@@ -67,7 +68,7 @@ class ProjectControllerTest extends TestCase
             'project_name' => 'New Test Project',
             'app_name' => 'New Test App',
             'github_url' => 'https://github.com/test/repo',
-            'team_id' => $this->team->id
+            'team_id' => $this->team->id,
         ];
 
         $response = $this->actingAs($this->user)
@@ -77,7 +78,7 @@ class ProjectControllerTest extends TestCase
         $this->assertDatabaseHas('projects', [
             'project_name' => 'New Test Project',
             'app_name' => 'New Test App',
-            'team_id' => $this->team->id
+            'team_id' => $this->team->id,
         ]);
     }
 
@@ -112,7 +113,7 @@ class ProjectControllerTest extends TestCase
             'app_name' => 'Updated App Name',
             'github_url' => 'https://github.com/updated/repo',
             'tech_stacks' => [],
-            'tags' => []
+            'tags' => [],
         ];
 
         $response = $this->actingAs($this->user)
@@ -122,7 +123,7 @@ class ProjectControllerTest extends TestCase
         $this->assertDatabaseHas('projects', [
             'id' => $project->id,
             'project_name' => 'Updated Project Name',
-            'app_name' => 'Updated App Name'
+            'app_name' => 'Updated App Name',
         ]);
     }
 
@@ -130,7 +131,7 @@ class ProjectControllerTest extends TestCase
     {
         $project = Project::factory()->create([
             'team_id' => $this->team->id,
-            'project_image_url' => null // 画像URLなしでテスト
+            'project_image_url' => null, // 画像URLなしでテスト
         ]);
 
         $response = $this->actingAs($this->user)

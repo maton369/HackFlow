@@ -3,27 +3,23 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Models\TechStack;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Mockery;
 use Tests\TestCase;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProfileUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
         // Cloudinaryをモック
         Cloudinary::shouldReceive('upload')
-            ->andReturn((object)[
+            ->andReturn((object) [
                 'getSecurePath' => 'https://cloudinary.com/fake-image.jpg',
                 'getPublicId' => 'fake-public-id',
             ]);

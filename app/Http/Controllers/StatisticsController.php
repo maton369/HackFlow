@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class StatisticsController extends Controller
@@ -15,7 +14,7 @@ class StatisticsController extends Controller
             'teams' => 5,
             'users' => 100,
         ];
-        
+
         return Inertia::render('Statistics/Index', ['statistics' => $statistics]);
     }
 }

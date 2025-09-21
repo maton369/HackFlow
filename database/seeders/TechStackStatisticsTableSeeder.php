@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\TechStack;
 use App\Models\TechStackStatistic;
+use Illuminate\Database\Seeder;
 
 class TechStackStatisticsTableSeeder extends Seeder
 {
@@ -23,7 +22,7 @@ class TechStackStatisticsTableSeeder extends Seeder
                 [
                     'total_projects' => $totalProjects,
                     'usage_count' => 1,
-                    'usage_ratio' => 100
+                    'usage_ratio' => 100,
                 ]
             );
         }

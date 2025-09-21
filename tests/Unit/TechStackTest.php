@@ -2,10 +2,10 @@
 
 namespace Tests\Unit;
 
-use App\Models\TechStack;
 use App\Models\Project;
-use App\Models\User;
 use App\Models\ProjectTechStack;
+use App\Models\TechStack;
+use App\Models\User;
 use App\Models\UserTechStack;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,12 +22,12 @@ class TechStackTest extends TestCase
 
         ProjectTechStack::create([
             'project_id' => $project1->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         ProjectTechStack::create([
             'project_id' => $project2->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         $this->assertEquals(2, $techStack->projects()->count());
@@ -43,12 +43,12 @@ class TechStackTest extends TestCase
 
         UserTechStack::create([
             'user_id' => $user1->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         UserTechStack::create([
             'user_id' => $user2->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         $this->assertEquals(2, $techStack->users()->count());
@@ -59,10 +59,10 @@ class TechStackTest extends TestCase
     public function test_tech_stack_has_fillable_attributes()
     {
         $fillable = [
-            'name'
+            'name',
         ];
 
-        $techStack = new TechStack();
+        $techStack = new TechStack;
 
         $this->assertEquals($fillable, $techStack->getFillable());
     }
@@ -70,7 +70,7 @@ class TechStackTest extends TestCase
     public function test_tech_stack_can_be_created_with_name()
     {
         $techStackData = [
-            'name' => 'Laravel'
+            'name' => 'Laravel',
         ];
 
         $techStack = TechStack::create($techStackData);
@@ -97,17 +97,17 @@ class TechStackTest extends TestCase
         // 3つのプロジェクトで使用
         ProjectTechStack::create([
             'project_id' => $project1->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         ProjectTechStack::create([
             'project_id' => $project2->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         ProjectTechStack::create([
             'project_id' => $project3->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         $usageCount = $techStack->projects()->count();

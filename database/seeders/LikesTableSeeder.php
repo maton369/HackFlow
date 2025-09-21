@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Project;
 use App\Models\Like;
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class LikesTableSeeder extends Seeder
 {

@@ -2,10 +2,10 @@
 
 namespace Tests\Unit;
 
+use App\Models\Project;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
-use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,7 +21,7 @@ class TeamTest extends TestCase
         TeamMember::create([
             'user_id' => $user->id,
             'team_id' => $team->id,
-            'role' => 'member'
+            'role' => 'member',
         ]);
 
         $this->assertEquals(1, $team->members()->count());
@@ -36,7 +36,7 @@ class TeamTest extends TestCase
         TeamMember::create([
             'user_id' => $owner->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         $this->assertNotNull($team->owner);
@@ -61,13 +61,13 @@ class TeamTest extends TestCase
         TeamMember::create([
             'user_id' => $user1->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         TeamMember::create([
             'user_id' => $user2->id,
             'team_id' => $team->id,
-            'role' => 'member'
+            'role' => 'member',
         ]);
 
         $this->assertEquals(2, $team->users()->count());
@@ -82,7 +82,7 @@ class TeamTest extends TestCase
             'team_image_url',
         ];
 
-        $team = new Team();
+        $team = new Team;
 
         $this->assertEquals($fillable, $team->getFillable());
     }
@@ -91,7 +91,7 @@ class TeamTest extends TestCase
     {
         $teamData = [
             'team_name' => 'Test Team',
-            'team_image_url' => 'https://example.com/image.jpg'
+            'team_image_url' => 'https://example.com/image.jpg',
         ];
 
         $team = Team::create($teamData);
