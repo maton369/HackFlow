@@ -22,9 +22,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'bio',
-        'tech_level',
-        'profile_image_url',
+        'google_id',
+        'github_id',
+        'profile_image',
+        'bio'
     ];
 
     /**
@@ -80,5 +81,10 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class, 'likes', 'user_id', 'project_id')
             ->with('team') // ✅ プロジェクトの所属チーム情報を取得
             ->withTimestamps(); // 🔥 タイムスタンプを含める
+    }
+
+    public function hasLikedProject($projectId)
+    {
+        return $this->likedProjects()->where('project_id', $projectId)->exists();
     }
 }
