@@ -2,9 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Project;
-use App\Models\TechStack;
-use App\Models\ProjectTechStack;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

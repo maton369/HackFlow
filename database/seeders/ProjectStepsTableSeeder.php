@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\ProjectStep;
 use App\Models\Project;
+use App\Models\ProjectStep;
+use Illuminate\Database\Seeder;
 
 class ProjectStepsTableSeeder extends Seeder
 {

@@ -13,6 +13,7 @@ class LikeControllerTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $project;
 
     protected function setUp(): void
@@ -38,7 +39,7 @@ class LikeControllerTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseHas('likes', [
             'user_id' => $this->user->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         $responseData = $response->json();
@@ -50,7 +51,7 @@ class LikeControllerTest extends TestCase
         // 最初にいいねを作成
         Like::create([
             'user_id' => $this->user->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         $response = $this->actingAs($this->user)
@@ -59,7 +60,7 @@ class LikeControllerTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseMissing('likes', [
             'user_id' => $this->user->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         $responseData = $response->json();
@@ -72,12 +73,12 @@ class LikeControllerTest extends TestCase
 
         Like::create([
             'user_id' => $this->user->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         Like::create([
             'user_id' => $user2->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         $response = $this->get(route('projects.like-count', $this->project));
@@ -107,7 +108,7 @@ class LikeControllerTest extends TestCase
         // いいねした状態
         Like::create([
             'user_id' => $this->user->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         $response = $this->actingAs($this->user)
@@ -131,12 +132,12 @@ class LikeControllerTest extends TestCase
 
         Like::create([
             'user_id' => $this->user->id,
-            'project_id' => $this->project->id
+            'project_id' => $this->project->id,
         ]);
 
         Like::create([
             'user_id' => $this->user->id,
-            'project_id' => $project2->id
+            'project_id' => $project2->id,
         ]);
 
         $response = $this->actingAs($this->user)

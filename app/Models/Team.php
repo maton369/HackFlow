@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Team extends Model
 {
@@ -31,7 +31,6 @@ class Team extends Model
         return $this->belongsToMany(User::class, 'team_members', 'team_id', 'user_id')
             ->withPivot('role'); // 🔥 `role` を取得
     }
-
 
     public function projects()
     {

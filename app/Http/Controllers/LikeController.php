@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Like;
-use App\Models\Project;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LikeController extends Controller
@@ -18,6 +17,7 @@ class LikeController extends Controller
         if ($like) {
             // すでにいいねしていたら削除（いいね解除）
             $like->delete();
+
             return response()->json(['message' => 'Unliked', 'liked' => false]);
         } else {
             // いいねしていなければ新規作成
@@ -25,6 +25,7 @@ class LikeController extends Controller
                 'user_id' => $user->id,
                 'project_id' => $projectId,
             ]);
+
             return response()->json(['message' => 'Liked', 'liked' => true]);
         }
     }
@@ -33,6 +34,7 @@ class LikeController extends Controller
     public function getLikeCount($projectId)
     {
         $count = Like::where('project_id', $projectId)->count();
+
         return response()->json(['count' => $count]);
     }
 
@@ -41,17 +43,19 @@ class LikeController extends Controller
     {
         $user = Auth::user();
         $liked = Like::where('user_id', $user->id)->where('project_id', $projectId)->exists();
+
         return response()->json(['liked' => $liked]);
     }
 
     public function getUserLikes()
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['likes' => []]); // 未ログインなら空配列を返す
         }
 
         $likes = Like::where('user_id', $user->id)->pluck('project_id'); // ユーザーがいいねしたプロジェクトIDを取得
+
         return response()->json(['likes' => $likes]);
     }
 }

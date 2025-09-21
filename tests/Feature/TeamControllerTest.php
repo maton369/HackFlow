@@ -55,7 +55,7 @@ class TeamControllerTest extends TestCase
     {
         $teamData = [
             'team_name' => 'New Test Team',
-            'team_image_url' => 'https://example.com/team.jpg'
+            'team_image_url' => 'https://example.com/team.jpg',
         ];
 
         $response = $this->actingAs($this->user)
@@ -63,7 +63,7 @@ class TeamControllerTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseHas('teams', [
-            'team_name' => 'New Test Team'
+            'team_name' => 'New Test Team',
         ]);
 
         // チーム作成者がオーナーになることを確認
@@ -71,7 +71,7 @@ class TeamControllerTest extends TestCase
         $this->assertDatabaseHas('team_members', [
             'user_id' => $this->user->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
     }
 
@@ -92,7 +92,7 @@ class TeamControllerTest extends TestCase
         TeamMember::create([
             'user_id' => $this->user->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -113,7 +113,7 @@ class TeamControllerTest extends TestCase
         TeamMember::create([
             'user_id' => $owner->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -130,12 +130,12 @@ class TeamControllerTest extends TestCase
         TeamMember::create([
             'user_id' => $this->user->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         $updateData = [
             'team_name' => 'Updated Team Name',
-            'members' => [$this->user->id] // メンバー配列を追加
+            'members' => [$this->user->id], // メンバー配列を追加
         ];
 
         $response = $this->actingAs($this->user)
@@ -144,7 +144,7 @@ class TeamControllerTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('teams', [
             'id' => $team->id,
-            'team_name' => 'Updated Team Name'
+            'team_name' => 'Updated Team Name',
         ]);
     }
 
@@ -155,7 +155,7 @@ class TeamControllerTest extends TestCase
         TeamMember::create([
             'user_id' => $this->user->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -179,7 +179,7 @@ class TeamControllerTest extends TestCase
 
         $response = $this->actingAs($this->user)
             ->post(route('teams.store'), [
-                'team_name' => 'Existing Team'
+                'team_name' => 'Existing Team',
             ]);
 
         $response->assertSessionHasErrors(['team_name']);

@@ -30,6 +30,7 @@ class TechStackStatistic extends Model
         if ($totalProjects === 0) {
             // プロジェクトが 0 件なら統計をクリア
             self::truncate();
+
             return;
         }
 

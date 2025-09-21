@@ -15,7 +15,7 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:users,email,' . $this->user()->id], // 🔥 `required` を削除
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email,'.$this->user()->id], // 🔥 `required` を削除
             'password' => ['nullable', 'confirmed', 'min:8'],
             'bio' => ['nullable', 'string', 'max:500'],
             'tech_level' => ['nullable', 'in:beginner,intermediate,advanced'],

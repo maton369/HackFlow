@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Team;
+use Illuminate\Database\Seeder;
 
 class TeamsTableSeeder extends Seeder
 {
@@ -15,7 +14,7 @@ class TeamsTableSeeder extends Seeder
     {
         Team::firstOrCreate([
             'team_name' => 'HackFlow Team',
-            'team_image_url' => 'https://example.com/team.jpg'
+            'team_image_url' => 'https://example.com/team.jpg',
         ]);
     }
 }

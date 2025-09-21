@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Inertia\Inertia;
 use App\Models\Project;
-use App\Models\User;
+use App\Models\ProjectStep;
+use App\Models\Tag;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\TechStack;
-use App\Models\Tag;
-use App\Models\ProjectStep;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use App\Models\TechStackStatistic;
+use App\Models\User;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
@@ -51,14 +51,13 @@ class ProjectController extends Controller
             'urls',
             'teams:id,team_name',
             'projects:id,project_name,team_id',
-            'likedProjects:id,project_name,team_id' // ✅ いいねしたプロジェクトを取得
+            'likedProjects:id,project_name,team_id', // ✅ いいねしたプロジェクトを取得
         ]);
 
         return Inertia::render('MyPage', [
-            'user' => $user
+            'user' => $user,
         ]);
     }
-
 
     public function create()
     {
@@ -73,10 +72,9 @@ class ProjectController extends Controller
         return Inertia::render('Projects/Create', [
             'teams' => $userTeams,
             'techStacks' => $techStacks,
-            'tags' => $tags
+            'tags' => $tags,
         ]);
     }
-
 
     public function store(Request $request)
     {
@@ -103,15 +101,15 @@ class ProjectController extends Controller
             'github_url' => $validated['github_url'] ?? '',
             'live_url' => $validated['live_url'] ?? '',
             'team_id' => $validated['team_id'],
-            'like_count' => 0
+            'like_count' => 0,
         ]);
 
         // 🔥 `tech_stacks` & `tags` のリレーションを設定
-        if (!empty($validated['tech_stack_ids'])) {
+        if (! empty($validated['tech_stack_ids'])) {
             $project->techStacks()->sync($validated['tech_stack_ids']);
         }
 
-        if (!empty($validated['tag_ids'])) {
+        if (! empty($validated['tag_ids'])) {
             $project->tags()->sync($validated['tag_ids']);
         }
 
@@ -133,7 +131,7 @@ class ProjectController extends Controller
         ]);
 
         return Inertia::render('Projects/Show', [
-            'project' => $project->toArray() + ['like_count' => $project->likes()->count()]
+            'project' => $project->toArray() + ['like_count' => $project->likes()->count()],
         ]);
     }
 
@@ -146,7 +144,7 @@ class ProjectController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if (!$isMember) {
+        if (! $isMember) {
             abort(403, 'このプロジェクトを編集する権限がありません。');
         }
 
@@ -155,7 +153,7 @@ class ProjectController extends Controller
         return Inertia::render('Projects/Edit', [
             'project' => $project,
             'techStacks' => TechStack::all(),
-            'tags' => Tag::all()
+            'tags' => Tag::all(),
         ]);
     }
 
@@ -168,7 +166,7 @@ class ProjectController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if (!$isMember) {
+        if (! $isMember) {
             abort(403, 'このプロジェクトを編集する権限がありません。');
         }
 
@@ -211,7 +209,7 @@ class ProjectController extends Controller
         // ✅ 技術スタックの処理（重複回避）
         $techStackIds = [];
         foreach ($validated['tech_stacks'] as $techStack) {
-            if (!empty($techStack['id'])) {
+            if (! empty($techStack['id'])) {
                 $techStackIds[] = $techStack['id'];
             } else {
                 // 🔥 すでに存在する技術スタックを再利用
@@ -229,7 +227,7 @@ class ProjectController extends Controller
         // ✅ タグの処理（重複回避）
         $tagIds = [];
         foreach ($validated['tags'] as $tag) {
-            if (!empty($tag['id'])) {
+            if (! empty($tag['id'])) {
                 $tagIds[] = $tag['id'];
             } else {
                 // 🔥 すでに存在するタグを再利用
@@ -244,11 +242,11 @@ class ProjectController extends Controller
         }
         $project->tags()->sync($tagIds);
 
-        if (!empty($validated['project_steps'])) {
+        if (! empty($validated['project_steps'])) {
             $existingStepIds = [];
 
             foreach ($validated['project_steps'] as $stepData) {
-                if (!empty($stepData['id'])) {
+                if (! empty($stepData['id'])) {
                     // 既存のステップを更新
                     $step = ProjectStep::find($stepData['id']);
                     if ($step && $step->project_id === $project->id) {
@@ -273,14 +271,12 @@ class ProjectController extends Controller
             $project->projectSteps()->whereNotIn('id', $existingStepIds)->delete();
         }
 
-
         // 🔥 **技術スタック統計データを更新**
         TechStackStatistic::updateStatistics();
 
         return Redirect::route('projects.show', $project->fresh()->id)
             ->with('success', 'プロジェクト情報を更新しました！');
     }
-
 
     public function statistics()
     {
@@ -291,7 +287,6 @@ class ProjectController extends Controller
         ]);
     }
 
-
     public function destroy(Project $project)
     {
         // ✅ ユーザーがプロジェクトのリーダーか確認
@@ -301,7 +296,7 @@ class ProjectController extends Controller
             ->wherePivot('role', 'owner') // リーダー判定
             ->exists();
 
-        if (!$isLeader) {
+        if (! $isLeader) {
             return redirect()->route('projects.show', $project->id)
                 ->with('error', 'プロジェクトを削除できるのはリーダーのみです。');
         }
@@ -324,7 +319,6 @@ class ProjectController extends Controller
             TechStackStatistic::updateStatistics();
         });
 
-
         return redirect()->route('home')->with('success', 'プロジェクトが削除されました！');
     }
 
@@ -332,7 +326,7 @@ class ProjectController extends Controller
     {
         $tagName = $request->query('tag');
 
-        if (!$tagName) {
+        if (! $tagName) {
             return response()->json(Project::with(['team', 'techStacks', 'tags'])->withCount('likes')->get());
         }
 

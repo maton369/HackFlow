@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\TechStack;
+use App\Models\User;
+use App\Models\UserUrl;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\TechStack;
-use App\Models\UserUrl;
 
 class UserTechStackAndUrlSeeder extends Seeder
 {
@@ -20,7 +20,7 @@ class UserTechStackAndUrlSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'bio' => 'This is the leader of the team.',
                 'tech_level' => 'advanced',
-                'profile_image_url' => 'https://example.com/leader.jpg'
+                'profile_image_url' => 'https://example.com/leader.jpg',
             ]
         );
 
@@ -31,7 +31,7 @@ class UserTechStackAndUrlSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'bio' => 'This is a member of the team.',
                 'tech_level' => 'intermediate',
-                'profile_image_url' => 'https://example.com/member.jpg'
+                'profile_image_url' => 'https://example.com/member.jpg',
             ]
         );
 
@@ -49,25 +49,25 @@ class UserTechStackAndUrlSeeder extends Seeder
             UserUrl::create([
                 'user_id' => $leader->id,
                 'url' => 'https://github.com/leader',
-                'url_type' => 'GitHub'
+                'url_type' => 'GitHub',
             ]);
 
             UserUrl::create([
                 'user_id' => $leader->id,
                 'url' => 'https://leader.dev',
-                'url_type' => 'Portfolio'
+                'url_type' => 'Portfolio',
             ]);
 
             UserUrl::create([
                 'user_id' => $member->id,
                 'url' => 'https://github.com/member',
-                'url_type' => 'GitHub'
+                'url_type' => 'GitHub',
             ]);
 
             UserUrl::create([
                 'user_id' => $member->id,
                 'url' => 'https://member.dev',
-                'url_type' => 'Portfolio'
+                'url_type' => 'Portfolio',
             ]);
         });
 

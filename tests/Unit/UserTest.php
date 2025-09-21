@@ -2,12 +2,12 @@
 
 namespace Tests\Unit;
 
-use App\Models\User;
+use App\Models\Like;
+use App\Models\Project;
 use App\Models\Team;
 use App\Models\TeamMember;
-use App\Models\Project;
-use App\Models\Like;
 use App\Models\TechStack;
+use App\Models\User;
 use App\Models\UserTechStack;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,13 +25,13 @@ class UserTest extends TestCase
         TeamMember::create([
             'user_id' => $user->id,
             'team_id' => $team1->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         TeamMember::create([
             'user_id' => $user->id,
             'team_id' => $team2->id,
-            'role' => 'member'
+            'role' => 'member',
         ]);
 
         $this->assertEquals(2, $user->teams()->count());
@@ -46,7 +46,7 @@ class UserTest extends TestCase
 
         UserTechStack::create([
             'user_id' => $user->id,
-            'tech_stack_id' => $techStack->id
+            'tech_stack_id' => $techStack->id,
         ]);
 
         $this->assertEquals(1, $user->techStacks()->count());
@@ -60,7 +60,7 @@ class UserTest extends TestCase
 
         Like::create([
             'user_id' => $user->id,
-            'project_id' => $project->id
+            'project_id' => $project->id,
         ]);
 
         $this->assertEquals(1, $user->likedProjects()->count());
@@ -76,7 +76,7 @@ class UserTest extends TestCase
         TeamMember::create([
             'user_id' => $user->id,
             'team_id' => $team->id,
-            'role' => 'owner'
+            'role' => 'owner',
         ]);
 
         $this->assertEquals(1, $user->projects()->count());
@@ -92,10 +92,10 @@ class UserTest extends TestCase
             'google_id',
             'github_id',
             'profile_image',
-            'bio'
+            'bio',
         ];
 
-        $user = new User();
+        $user = new User;
 
         $this->assertEquals($fillable, $user->getFillable());
     }
@@ -110,7 +110,7 @@ class UserTest extends TestCase
     public function test_user_email_is_verified_timestamp_is_cast_to_datetime()
     {
         $user = User::factory()->create([
-            'email_verified_at' => now()
+            'email_verified_at' => now(),
         ]);
 
         $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $user->email_verified_at);
@@ -125,7 +125,7 @@ class UserTest extends TestCase
 
         Like::create([
             'user_id' => $user->id,
-            'project_id' => $project->id
+            'project_id' => $project->id,
         ]);
 
         $this->assertTrue($user->hasLikedProject($project->id));

@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Project;
 use App\Models\Team;
+use Illuminate\Database\Seeder;
 
 class ProjectsTableSeeder extends Seeder
 {
@@ -25,7 +24,7 @@ class ProjectsTableSeeder extends Seeder
                     'github_url' => 'https://github.com/hackflow',
                     'live_url' => 'https://hackflow.example.com',
                     'team_id' => $team->id,
-                    'like_count' => 0
+                    'like_count' => 0,
                 ]
             );
         }
