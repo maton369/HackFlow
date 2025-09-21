@@ -1,0 +1,74 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hackflow-app
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    networks:
+      - hackflow-network
+    depends_on:
+      - db
+      - redis
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+
+  nginx:
+    image: nginx:alpine
+    container_name: hackflow-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - hackflow-network
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: hackflow-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: hackflow
+      MYSQL_USER: hackflow_user
+      MYSQL_PASSWORD: hackflow_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - hackflow-network
+
+  redis:
+    image: redis:alpine
+    container_name: hackflow-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - hackflow-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: hackflow-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: hackflow_user
+      PMA_PASSWORD: hackflow_password
+    ports:
+      - "8081:80"
+    networks:
+      - hackflow-network
+    depends_on:
+      - db
+
+networks:
+  hackflow-network:
+    driver: bridge
+
+volumes:
+  db_data:
